@@ -1,8 +1,8 @@
-# Autoposter Template
+# Auto Moto Autoposter
 
-A small, reusable Python template for rule-based Telegram news autoposters.
-It separates stable infrastructure from the theme of a particular channel and
-keeps local execution safe by default.
+A rule-based Telegram autoposter for Russian-language news about cars,
+motorcycles, the vehicle market, technology, ownership, and major motorsport
+events. It keeps local execution safe by default.
 
 ## What it includes
 
@@ -43,12 +43,13 @@ cp .env.example .env
 .venv/bin/python main.py
 ```
 
-The included ExampleNews project uses local synthetic technology news. The
-first run therefore demonstrates the full selection and formatting pipeline
-without network access, Telegram calls, or history writes.
+The project uses free Russian-language sources and includes disabled local
+fixtures for deterministic tests and editorial tuning. Routine motorsport
+chatter is deliberately ranked below major results, official announcements,
+records, penalties, and calendar changes.
 
-To build a real channel, follow [PROJECT_SETUP.md](PROJECT_SETUP.md). For the
-design and LiveCrime mapping, see [ARCHITECTURE.md](ARCHITECTURE.md).
+To tune or extend the channel, follow [PROJECT_SETUP.md](PROJECT_SETUP.md).
+For the reusable architecture, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Safety
 
@@ -58,6 +59,5 @@ design and LiveCrime mapping, see [ARCHITECTURE.md](ARCHITECTURE.md).
 2. valid `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`;
 3. an explicit execution of `main.py`.
 
-Do not use real credentials in committed files. The example workflow reads
+Do not use real credentials in committed files. The workflow reads
 credentials only from GitHub Secrets and has no built-in schedule.
-
