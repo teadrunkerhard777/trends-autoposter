@@ -1,3 +1,5 @@
+from types import SimpleNamespace
+
 import requests
 
 from collectors.html_collector import (
@@ -6,6 +8,7 @@ from collectors.html_collector import (
     RETRY_DELAY_SECONDS,
     collect_html,
 )
+from collectors.rss_collector import collect_rss
 
 
 class Response:
@@ -203,3 +206,28 @@ def test_html_collector_returns_empty_after_retries(monkeypatch):
     assert items == []
     assert len(attempts) == DEFAULT_RETRIES + 1
     assert sleeps == [RETRY_DELAY_SECONDS] * DEFAULT_RETRIES
+
+
+def test_rss_collector_respects_source_limit(monkeypatch):
+    entries = [
+        {
+            "title": f"Story {number}",
+            "link": f"https://example.test/{number}",
+            "published": "Wed, 01 Jan 2026 10:00:00 +0000",
+            "summary": "Summary",
+        }
+        for number in range(5)
+    ]
+    feed = SimpleNamespace(bozo=False, entries=entries)
+    monkeypatch.setattr(
+        "collectors.rss_collector.feedparser.parse",
+        lambda url: feed,
+    )
+
+    items = collect_rss({
+        "name": "RSS Example",
+        "url": "https://example.test/rss",
+        "limit": 2,
+    })
+
+    assert [item["title"] for item in items] == ["Story 0", "Story 1"]

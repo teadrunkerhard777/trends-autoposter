@@ -1,9 +1,12 @@
 from datetime import datetime, timezone
 
+from bs4 import BeautifulSoup
+
 from processing.filters import add_scores, filter_by_minimum_score, filter_relevant
 from project.filters import is_relevant
 from project.formatter import format_photo_caption, format_post
 from project.scoring import calculate_score
+from project.sources import extract_autostat_article
 
 
 def item(title, description=""):
@@ -82,6 +85,21 @@ def test_motorsport_quote_about_titles_is_not_treated_as_a_result():
     assert calculate_score(news) == 2
 
 
+def test_dealer_forecast_ranks_below_confirmed_market_event():
+    forecast = item(
+        "Дилер рассказал о перспективах гибридного кроссовера Avatr 07",
+        "Ожидается у дилеров осенью и способен стать массовой моделью в России.",
+    )
+    confirmed = item(
+        "Changan начал продажи нового дизельного пикапа в России",
+        "Автомобиль поступил к дилерам по официально объявленной цене.",
+    )
+    for news in (forecast, confirmed):
+        is_relevant(news)
+
+    assert calculate_score(forecast) < calculate_score(confirmed)
+
+
 def test_formatter_escapes_html_and_uses_editorial_tags():
     news = item("Toyota <показала> кроссовер", "Быстрее & экономичнее")
     is_relevant(news)
@@ -112,3 +130,21 @@ def test_photo_caption_stays_inside_safe_limit():
     news = item("BMW представила новый автомобиль", "word & " * 1000)
     is_relevant(news)
     assert len(format_photo_caption(news)) <= 1000
+
+
+def test_autostat_extractor_keeps_only_article_paragraphs():
+    soup = BeautifulSoup(
+        """
+        <div class="login"><p>Введите адрес электронной почты</p></div>
+        <div class="text inner_content">
+          <p>Первый абзац новости.</p>
+          <p>Второй абзац новости.</p>
+        </div>
+        <footer><p>Адрес редакции</p></footer>
+        """,
+        "html.parser",
+    )
+
+    assert extract_autostat_article(soup) == (
+        "Первый абзац новости.\n\nВторой абзац новости."
+    )
