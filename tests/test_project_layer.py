@@ -52,7 +52,7 @@ def test_formatter_escapes_html_and_uses_editorial_tags():
 
     assert "Toyota &lt;показала&gt;" in post
     assert "Быстрее &amp; экономичнее" in post
-    assert "#АвтоМотоНовости #Новинки" in post
+    assert "#АвтомобилиНовости #Новинки" in post
     assert "Тест &amp; источник" in post
     assert 'href="https://example.test/item?a=1&amp;b=2"' in post
 

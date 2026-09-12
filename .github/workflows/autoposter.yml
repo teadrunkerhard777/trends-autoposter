@@ -1,4 +1,4 @@
-name: Auto Moto Autoposter
+name: "Автомобили | НОВОСТИ |"
 
 # The repository exposes a manual endpoint for a trusted external scheduler.
 on:

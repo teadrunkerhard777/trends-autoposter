@@ -8,7 +8,7 @@ from generation.text import fit_text_to_html_limit
 MESSAGE_LIMIT = 4000
 PHOTO_CAPTION_LIMIT = 1000
 SUMMARY_PARAGRAPH_LIMIT = 3
-BRAND_HASHTAG = "#АвтоМотоНовости"
+BRAND_HASHTAG = "#АвтомобилиНовости"
 
 CATEGORY_PRESENTATION = {
     "safety_recalls": ("⚠️", "#Безопасность"),

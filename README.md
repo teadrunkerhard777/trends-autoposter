@@ -1,4 +1,4 @@
-# Auto Moto Autoposter
+# Автомобили | НОВОСТИ |
 
 A rule-based Telegram autoposter for Russian-language news about cars,
 motorcycles, the vehicle market, technology, ownership, and major motorsport
