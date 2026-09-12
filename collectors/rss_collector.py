@@ -11,7 +11,7 @@ def collect_rss(source):
     if feed.bozo:
         print(f"RSS warning ({source['name']}): {feed.bozo_exception}")
 
-    items = [
+    return [
         normalize_item(
             {
                 "title": entry.get("title", ""),
@@ -24,5 +24,3 @@ def collect_rss(source):
         for entry in feed.entries
     ]
 
-    limit = max(0, int(source.get("limit", 40)))
-    return items[:limit]

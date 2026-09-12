@@ -1,1 +1,2 @@
-"""Project-specific auto and motorcycle channel behavior."""
+"""Project-specific ExampleNews behavior."""
+
