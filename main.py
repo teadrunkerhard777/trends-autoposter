@@ -266,7 +266,7 @@ def run():
 
 if __name__ == "__main__":
     try:
-        with single_instance_lock():
+        with single_instance_lock("trends-brands-autoposter.lock"):
             run()
     except AlreadyRunningError:
         print("Autoposter is already running; this run was stopped.")

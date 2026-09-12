@@ -1,4 +1,4 @@
-name: Example Autoposter
+name: Trends and Brands Autoposter
 
 # The repository exposes a manual endpoint for a trusted external scheduler.
 on:
@@ -9,7 +9,7 @@ permissions:
 
 # A later run waits instead of interrupting a publisher with unknown state.
 concurrency:
-  group: autoposter-template
+  group: trends-brands-autoposter
   cancel-in-progress: false
 
 jobs:
@@ -53,4 +53,3 @@ jobs:
           git add storage/published.json
           git commit -m "Update publication history"
           git push origin "HEAD:${GITHUB_REF_NAME}"
-

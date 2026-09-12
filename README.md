@@ -1,8 +1,8 @@
-# Autoposter Template
+# Trends & Brands Autoposter
 
-A small, reusable Python template for rule-based Telegram news autoposters.
-It separates stable infrastructure from the theme of a particular channel and
-keeps local execution safe by default.
+A rule-based Telegram autoposter that selects notable brand moves, consumer
+trends, retail innovations, campaigns, collaborations, and rebrands in Russia
+and around the world. Local execution remains safe by default.
 
 ## What it includes
 
@@ -43,9 +43,9 @@ cp .env.example .env
 .venv/bin/python main.py
 ```
 
-The included ExampleNews project uses local synthetic technology news. The
-first run therefore demonstrates the full selection and formatting pipeline
-without network access, Telegram calls, or history writes.
+The project combines direct Russian industry RSS feeds with narrow Google News
+RSS searches for international coverage. Relevance, event categories, scoring,
+and Telegram presentation live in `project/`.
 
 To build a real channel, follow [PROJECT_SETUP.md](PROJECT_SETUP.md). For the
 design and LiveCrime mapping, see [ARCHITECTURE.md](ARCHITECTURE.md).
@@ -60,4 +60,3 @@ design and LiveCrime mapping, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 Do not use real credentials in committed files. The example workflow reads
 credentials only from GitHub Secrets and has no built-in schedule.
-

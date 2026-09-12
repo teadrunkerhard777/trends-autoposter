@@ -1,2 +1,1 @@
-"""Project-specific ExampleNews behavior."""
-
+"""Project-specific behavior for the Trends & Brands channel."""
