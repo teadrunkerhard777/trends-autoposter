@@ -33,6 +33,17 @@ def calculate_score(news_item):
     title = str(news_item.get("title", "")).casefold()
     text = f"{title} {news_item.get('description', '')}".casefold()
     topics = news_item.get("matched_topics", [])
+
+    if topics == ["motorsport"]:
+        # Feed descriptions often mention official bodies, champions, cars,
+        # and technical terms as background. Only the headline event decides
+        # whether a racing story is important enough for this mixed channel.
+        return (
+            6
+            if any(signal in title for signal in MAJOR_MOTORSPORT_SIGNALS)
+            else 2
+        )
+
     score = sum(TOPIC_SCORES.get(topic, 0) for topic in topics)
     score += sum(points for points, keywords in IMPORTANCE_BONUSES.values() if any(keyword in text for keyword in keywords))
     score -= sum(points for points, keywords in LOW_VALUE_PENALTIES.values() if any(keyword in text for keyword in keywords))

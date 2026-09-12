@@ -34,7 +34,11 @@ def test_filter_rejects_unrelated_accident_news():
 
 
 def test_scoring_keeps_routine_racing_below_major_event():
-    routine = item("Пилот рассказал о настройках перед этапом Формулы-1")
+    routine = item(
+        "Льюис Хэмилтон: новая трасса интересна для пилотирования",
+        "Гонщик рассказал о настройках машины перед этапом Формулы-1.",
+    )
+    routine["source"] = "Autosport.com.ru"
     major = item("Пилот выиграл Гран-при и возглавил чемпионат Формулы-1")
     for news in (routine, major):
         is_relevant(news)
@@ -43,6 +47,29 @@ def test_scoring_keeps_routine_racing_below_major_event():
     assert routine["score"] < 5
     assert major["score"] >= 5
     assert filter_by_minimum_score([routine, major], 5) == [major]
+
+
+def test_autosport_source_does_not_accumulate_generic_auto_topics():
+    news = item(
+        "Команда показала машину на новой трассе",
+        "Пилот Формулы-1 рассказал о настройках двигателя.",
+    )
+    news["source"] = "Autosport.com.ru"
+
+    assert is_relevant(news)
+    assert news["matched_topics"] == ["motorsport"]
+    assert calculate_score(news) == 2
+
+
+def test_motorsport_schedule_does_not_pass_on_background_description():
+    news = item(
+        "Гран При Испании Формулы 1: расписание и трансляции",
+        "Официальный календарь чемпионата и технические данные машин.",
+    )
+    news["source"] = "Autosport.com.ru"
+    is_relevant(news)
+
+    assert calculate_score(news) == 2
 
 
 def test_formatter_escapes_html_and_uses_editorial_tags():

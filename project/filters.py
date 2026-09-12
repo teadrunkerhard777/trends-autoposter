@@ -43,6 +43,12 @@ def is_relevant(news_item):
         topic for topic, keywords in TOPIC_KEYWORDS.items()
         if any(keyword in text for keyword in keywords)
     }
+
+    # This feed is already narrowly scoped. Do not let generic words such as
+    # "машина", "настройки", or "новая трасса" inflate racing stories.
+    if news_item.get("source") == "Autosport.com.ru":
+        matched = {"motorsport"}
+
     relevant = not excluded and bool(matched) and (has_vehicle_context or "motorsport" in matched)
     matched_topics = [topic for topic in EVENT_CATEGORY_PRIORITY if topic in matched] if relevant else []
     news_item["matched_topics"] = matched_topics
