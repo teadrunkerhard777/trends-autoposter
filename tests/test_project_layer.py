@@ -72,6 +72,16 @@ def test_motorsport_schedule_does_not_pass_on_background_description():
     assert calculate_score(news) == 2
 
 
+def test_motorsport_quote_about_titles_is_not_treated_as_a_result():
+    news = item(
+        "«Не титулы и победы». Пилот назвал главное наследие карьеры в Ф1"
+    )
+    news["source"] = "Autosport.com.ru"
+    is_relevant(news)
+
+    assert calculate_score(news) == 2
+
+
 def test_formatter_escapes_html_and_uses_editorial_tags():
     news = item("Toyota <показала> кроссовер", "Быстрее & экономичнее")
     is_relevant(news)
