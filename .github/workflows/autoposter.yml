@@ -1,7 +1,10 @@
 name: Trends and Brands Autoposter
 
-# The repository exposes a manual endpoint for a trusted external scheduler.
 on:
+  # GitHub cron uses UTC. These runs are 11:00, 15:00, 19:00, and 23:00
+  # in Asia/Yekaterinburg (UTC+5), every day.
+  schedule:
+    - cron: "0 6,10,14,18 * * *"
   workflow_dispatch:
 
 permissions:

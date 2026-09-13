@@ -107,11 +107,10 @@ source name and cannot alter unrelated sites.
 | Telegram publisher | `publishing/telegram.py` | Yes | Confirmed/uncertain semantics retained. |
 | Publication history | `storage/history.py` | Yes | Empty data file; legacy URL support. |
 | Run lock/TLS | `core/` | Yes | Neutral lock name and certifi setup. |
-| GitHub workflow | `.github/workflows/autoposter.yml` | Adapted | Manual only; no repository-specific URL. |
+| GitHub workflow | `.github/workflows/autoposter.yml` | Adapted | Four daily runs in Asia/Yekaterinburg plus manual launch. |
 
 The unsafe-to-generalize parts were LiveCrime's editorial whitelist, Russian
 crime stems, severe-outcome combinations, crime score weights, hashtags,
 geography regexes, enabled media list, and verified site DOM selectors. They
 encode one channel's policy or one site's current HTML and therefore belong in a
 concrete project, not reusable core.
-

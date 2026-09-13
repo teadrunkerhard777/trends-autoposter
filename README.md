@@ -80,7 +80,8 @@ and Telegram presentation live in `project/`.
   autoposter does not place watermarks, frames, or generated text over it.
 
 The default settings consider the last three days, require a score of at least
-eight, and select one story per run. Scheduling is intentionally not configured.
+eight, and select one story per run. GitHub Actions runs every day at 11:00,
+15:00, 19:00, and 23:00 Asia/Yekaterinburg time. Manual runs remain available.
 
 To build a real channel, follow [PROJECT_SETUP.md](PROJECT_SETUP.md). For the
 design and LiveCrime mapping, see [ARCHITECTURE.md](ARCHITECTURE.md).
@@ -93,5 +94,7 @@ design and LiveCrime mapping, see [ARCHITECTURE.md](ARCHITECTURE.md).
 2. valid `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`;
 3. an explicit execution of `main.py`.
 
-Do not use real credentials in committed files. The example workflow reads
-credentials only from GitHub Secrets and has no built-in schedule.
+Do not use real credentials in committed files. The workflow reads credentials
+only from GitHub Secrets. Add `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` in
+the repository's Settings → Secrets and variables → Actions before enabling
+live scheduled publication.
