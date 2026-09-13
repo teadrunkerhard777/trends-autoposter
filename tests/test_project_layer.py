@@ -137,7 +137,10 @@ def test_formatter_is_short_lively_and_html_safe():
     assert "Третья лишняя" not in post
     assert "Ждём на полках." in post
     assert "Почему это важно" not in post
-    assert "#" not in post
+    assert "📅 2 января 2026" in post
+    assert "📰 <b>Тренды и бренды:</b> новинки" in post
+    assert ">Читать источник</a>" in post
+    assert "#Новинки" in post
     assert 'href="https://example.test/item"' in post
 
 
@@ -152,7 +155,7 @@ def test_formatter_uses_real_google_news_publisher():
     post = format_post(news)
 
     assert "Nike unveils new identity - Design Week" not in post
-    assert ">Design Week</a>" in post
+    assert ">Читать источник</a>" in post
     assert "Google News" not in post
 
 

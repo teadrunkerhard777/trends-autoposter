@@ -19,6 +19,19 @@ PUNCHLINES = {
     "viral_event": "Ну конечно.",
 }
 
+CATEGORY_FOOTERS = {
+    "collaboration": ("коллаборации", "#Коллаборации"),
+    "product_launch": ("новинки", "#Новинки"),
+    "campaign": ("реклама", "#Реклама"),
+    "rebrand": ("ребрендинг", "#Ребрендинг"),
+    "viral_event": ("инфоповоды", "#Инфоповоды"),
+}
+
+MONTHS = (
+    "января", "февраля", "марта", "апреля", "мая", "июня",
+    "июля", "августа", "сентября", "октября", "ноября", "декабря",
+)
+
 
 def format_post(news_item):
     """Build one short HTML-safe text message."""
@@ -38,11 +51,17 @@ def _format(news_item, limit):
         publisher_name,
     )
     title = escape(raw_title[:500])
-    source = escape(publisher_name)
     url = escape(news_item.get("url", ""), quote=True)
     date = _format_date(news_item.get("published_at"))
-    punchline = PUNCHLINES.get(news_item.get("event_category"), "")
-    footer = f'🔗 <a href="{url}">{source}</a> · {date}'
+    category = news_item.get("event_category")
+    punchline = PUNCHLINES.get(category, "")
+    topic, hashtag = CATEGORY_FOOTERS.get(category, ("бренды", "#Бренды"))
+    footer = (
+        f"📅 {date}\n"
+        f"📰 <b>Тренды и бренды:</b> {topic}\n\n"
+        f'🔗 <a href="{url}">Читать источник</a>\n\n'
+        f"{hashtag}"
+    )
     header = f"<b>{title}</b>"
     fixed_length = len(header) + len(punchline) + len(footer) + 8
     body = news_item.get("article_text") or news_item.get("description", "")
@@ -77,7 +96,7 @@ def _short_excerpt(text, title):
 def _format_date(value):
     if not isinstance(value, datetime):
         return "дата не указана"
-    return value.strftime("%d.%m.%Y")
+    return f"{value.day} {MONTHS[value.month - 1]} {value.year}"
 
 
 def _display_source(source):
