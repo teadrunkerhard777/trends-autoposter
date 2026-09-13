@@ -4,6 +4,8 @@ import re
 from datetime import datetime
 from html import escape
 
+from project.settings import CHANNEL_TITLE
+
 from generation.text import fit_text_to_html_limit
 
 
@@ -58,7 +60,7 @@ def _format(news_item, limit):
     topic, hashtag = CATEGORY_FOOTERS.get(category, ("бренды", "#Бренды"))
     footer = (
         f"📅 {date}\n"
-        f"📰 <b>Тренды и бренды:</b> {topic}\n\n"
+        f"📰 <b>{CHANNEL_TITLE}:</b> {topic}\n\n"
         f'🔗 <a href="{url}">Читать источник</a>\n\n'
         f"{hashtag}"
     )

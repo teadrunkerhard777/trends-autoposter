@@ -138,7 +138,7 @@ def test_formatter_is_short_lively_and_html_safe():
     assert "Ждём на полках." in post
     assert "Почему это важно" not in post
     assert "📅 2 января 2026" in post
-    assert "📰 <b>Тренды и бренды:</b> новинки" in post
+    assert "📰 <b>Тренды и Бренды:</b> новинки" in post
     assert ">Читать источник</a>" in post
     assert "#Новинки" in post
     assert 'href="https://example.test/item"' in post

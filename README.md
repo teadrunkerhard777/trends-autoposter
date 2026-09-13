@@ -1,4 +1,4 @@
-# Trends & Brands Autoposter
+# «Тренды и Бренды» Autoposter
 
 A rule-based Telegram autoposter that selects notable brand moves, consumer
 trends, retail innovations, campaigns, collaborations, and rebrands in Russia
@@ -62,12 +62,20 @@ and Telegram presentation live in `project/`.
 - Article imagery is preferred over generic site branding: obvious logos,
   avatars, placeholders, and explicitly tiny metadata previews are skipped.
 
-## Visual direction
+## Channel identity
 
-- Channel avatar: `assets/channel-avatar-v1.png`.
-- Core palette: electric cobalt, acid lime, and near-black.
-- The avatar deliberately avoids company marks, small text, and fine detail so
-  it remains recognizable in Telegram's circular crop.
+- Name: `Тренды и Бренды`.
+- Avatar: supplied and managed by the channel owner outside this repository.
+- Description:
+
+  > 📈 Тренды и бренды
+  >
+  > Главные новости о компаниях, технологиях, бизнесе, людях и идеях, которые
+  > меняют рынок и нашу жизнь.
+  >
+  > Новые продукты, громкие сделки, популярные бренды, свежие тренды и всё, о
+  > чём будут говорить завтра.
+
 - Individual posts use the original editorial image from the source; the
   autoposter does not place watermarks, frames, or generated text over it.
 

@@ -1,5 +1,12 @@
 """Publication and deduplication settings for Trends & Brands."""
 
+CHANNEL_TITLE = "Тренды и Бренды"
+CHANNEL_DESCRIPTION = """📈 Тренды и бренды
+
+Главные новости о компаниях, технологиях, бизнесе, людях и идеях, которые меняют рынок и нашу жизнь.
+
+Новые продукты, громкие сделки, популярные бренды, свежие тренды и всё, о чём будут говорить завтра."""
+
 NEWS_LOOKBACK_DAYS = 3
 MAX_NEWS_PER_RUN = 1
 MIN_PUBLICATION_SCORE = 8
