@@ -57,7 +57,19 @@ and Telegram presentation live in `project/`.
 - Routine appointments, market research, events, roundups, how-to articles,
   financial reports, and workforce news are excluded before scoring.
 - Posts contain a headline, no more than two factual sentences, a short closing
-  reaction, and a linked source. There are no category banners or hashtags.
+  reaction, and a compact dated footer with the channel rubric, source link,
+  and one category hashtag.
+- Article imagery is preferred over generic site branding: obvious logos,
+  avatars, placeholders, and explicitly tiny metadata previews are skipped.
+
+## Visual direction
+
+- Channel avatar: `assets/channel-avatar-v1.png`.
+- Core palette: electric cobalt, acid lime, and near-black.
+- The avatar deliberately avoids company marks, small text, and fine detail so
+  it remains recognizable in Telegram's circular crop.
+- Individual posts use the original editorial image from the source; the
+  autoposter does not place watermarks, frames, or generated text over it.
 
 The default settings consider the last three days, require a score of at least
 eight, and select one story per run. Scheduling is intentionally not configured.

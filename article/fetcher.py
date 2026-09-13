@@ -88,19 +88,61 @@ def clean_article_text(text, source=None, source_stop_markers=None):
 
 
 def extract_article_image_url(html, page_url):
-    """Return og:image, then twitter:image, without downloading it."""
+    """Return the best plausible editorial preview image from page metadata."""
 
     soup = BeautifulSoup(html, "html.parser")
     selectors = (
         ('meta[property="og:image"]', "content"),
         ('meta[name="twitter:image"]', "content"),
+        ('link[rel="image_src"]', "href"),
     )
 
     for selector, attribute in selectors:
         node = soup.select_one(selector)
         value = node.get(attribute, "").strip() if node else ""
 
-        if value:
+        if value and _is_plausible_article_image(value, node):
             return urljoin(page_url, value)
 
     return None
+
+
+def _is_plausible_article_image(value, node):
+    """Reject metadata that clearly points to branding or tiny placeholders."""
+
+    normalized = value.casefold()
+
+    if normalized.startswith(("data:", "javascript:")):
+        return False
+
+    filename = normalized.split("?", 1)[0].rsplit("/", 1)[-1]
+    if any(marker in filename for marker in ("logo", "avatar", "favicon", "icon", "spinner", "placeholder")):
+        return False
+
+    width = _metadata_dimension(node, "width")
+    height = _metadata_dimension(node, "height")
+    return not (width and height and (width < 300 or height < 180))
+
+
+def _metadata_dimension(node, dimension):
+    """Read an adjacent Open Graph dimension when the publisher provides it."""
+
+    if node is None or not node.name == "meta":
+        return None
+
+    property_name = node.get("property") or node.get("name") or ""
+    expected = f"{property_name}:{dimension}"
+    dimension_node = node.find_next(
+        "meta",
+        attrs={
+            "property" if node.get("property") else "name": expected,
+        },
+    )
+
+    if dimension_node is None:
+        return None
+
+    try:
+        return int(dimension_node.get("content", ""))
+    except (TypeError, ValueError):
+        return None

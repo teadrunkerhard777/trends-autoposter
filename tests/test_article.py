@@ -205,3 +205,29 @@ def test_image_metadata_prefers_open_graph_and_resolves_relative_url():
 def test_image_metadata_falls_back_to_twitter():
     html = "<meta name='twitter:image' content='https://cdn.test/image.jpg'>"
     assert extract_article_image_url(html, "https://news.test") == "https://cdn.test/image.jpg"
+
+
+def test_image_metadata_skips_logo_and_uses_twitter_image():
+    html = """
+    <meta property='og:image' content='https://cdn.test/site-logo.png'>
+    <meta name='twitter:image' content='https://cdn.test/story.jpg'>
+    """
+
+    assert extract_article_image_url(html, "https://news.test") == "https://cdn.test/story.jpg"
+
+
+def test_image_metadata_skips_explicitly_tiny_open_graph_image():
+    html = """
+    <meta property='og:image' content='https://cdn.test/tiny.jpg'>
+    <meta property='og:image:width' content='120'>
+    <meta property='og:image:height' content='120'>
+    <meta name='twitter:image' content='https://cdn.test/editorial.jpg'>
+    """
+
+    assert extract_article_image_url(html, "https://news.test") == "https://cdn.test/editorial.jpg"
+
+
+def test_image_metadata_uses_image_src_as_last_resort():
+    html = "<link rel='image_src' href='/images/story.webp'>"
+
+    assert extract_article_image_url(html, "https://news.test/article") == "https://news.test/images/story.webp"
