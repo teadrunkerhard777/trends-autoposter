@@ -14,7 +14,7 @@ from project.sources import (
 )
 
 
-def item(title, description="", source="Cossa"):
+def item(title, description="", source="Postium Коллаборации"):
     return {
         "title": title,
         "description": description,
@@ -41,7 +41,7 @@ def test_filter_accepts_brand_event_and_rejects_unrelated_news():
 
 
 def test_filter_rejects_routine_appointment_even_with_brand_words():
-    news = item("Российский бренд назначил нового директора по маркетингу")
+    news = item("Apple назначила нового директора по маркетингу")
 
     assert is_relevant(news) is False
 
@@ -70,20 +70,53 @@ def test_filter_rejects_evergreen_branding_explainer():
     assert is_relevant(news) is False
 
 
+def test_brand_alias_does_not_match_inside_unrelated_word():
+    news = item("Маркетплейс запустил стратегию продаж")
+
+    assert is_relevant(news) is False
+    assert news["matched_brands"] == []
+
+
+def test_google_news_requires_a_trusted_original_publisher():
+    untrusted = item(
+        "Apple выпустила лимитированный iPhone",
+        source="Знаменитые бренды — Google News",
+    )
+    untrusted["publisher"] = "Unknown Viral Site"
+    trusted = item(
+        "Apple выпустила лимитированный iPhone",
+        source="Знаменитые бренды — Google News",
+    )
+    trusted["publisher"] = "The Verge"
+
+    assert is_relevant(untrusted) is False
+    assert is_relevant(trusted) is True
+
+
 def test_title_category_takes_priority_over_description_side_topics():
     news = item(
-        "Бренд представил новый логотип",
-        "Проект создан в партнерстве с агентством.",
+        "Apple представила новый логотип",
+        "Проект создан в коллаборации с агентством.",
     )
 
     assert is_relevant(news) is True
     assert news["event_category"] == "rebrand"
 
 
+def test_collaboration_in_description_beats_generic_launch_word():
+    news = item(
+        "adidas выпустил новые кроссовки",
+        "Это совместная версия с известным художником.",
+    )
+
+    assert is_relevant(news) is True
+    assert news["event_category"] == "collaboration"
+
+
 def test_scoring_rewards_direct_source_numbers_and_multiple_signals():
     news = item(
-        "Впервые 75% покупателей выбирают новый формат магазина",
-        "Исследование показывает изменение потребительского поведения.",
+        "Apple и Nike впервые выпустили совместную лимитку",
+        "Коллаборация поступит в продажу завтра.",
     )
     assert is_relevant(news) is True
 
@@ -93,47 +126,49 @@ def test_scoring_rewards_direct_source_numbers_and_multiple_signals():
     assert filter_by_minimum_score([news], MIN_PUBLICATION_SCORE) == [news]
 
 
-def test_formatter_escapes_html_and_adds_editorial_context():
-    news = item("Бренд <X> представил новый логотип", "Смелее & ярче")
+def test_formatter_is_short_lively_and_html_safe():
+    news = item("Apple <X> выпустила лимитку", "Смелее & ярче. Вторая деталь. Третья лишняя.")
     assert is_relevant(news) is True
 
     post = format_post(news)
 
-    assert "Бренд &lt;X&gt;" in post
+    assert "Apple &lt;X&gt;" in post
     assert "Смелее &amp; ярче" in post
-    assert "<b>Почему это важно:</b>" in post
-    assert "#ребрендинг" in post
+    assert "Третья лишняя" not in post
+    assert "Ждём на полках." in post
+    assert "Почему это важно" not in post
+    assert "#" not in post
     assert 'href="https://example.test/item"' in post
 
 
-def test_formatter_uses_category_header_and_cleans_google_news_label():
+def test_formatter_uses_real_google_news_publisher():
     news = item(
-        "Brand unveils new identity - Design Week",
-        source="Design Week — Google News",
+        "Nike unveils new identity - Design Week",
+        source="Знаменитые бренды — Google News",
     )
+    news["publisher"] = "Design Week"
     assert is_relevant(news) is True
 
     post = format_post(news)
 
-    assert "🎨 РЕБРЕНДИНГ" in post
-    assert "Brand unveils new identity - Design Week" not in post
+    assert "Nike unveils new identity - Design Week" not in post
     assert ">Design Week</a>" in post
     assert "Google News" not in post
 
 
 def test_formatter_removes_direct_source_suffix_from_title():
-    news = item("Россияне меняют привычки | New Retail", source="New Retail")
-    news["matched_topics"] = ["consumer_trend"]
-    news["event_category"] = "consumer_trend"
+    news = item("LEGO выпустила новый набор | New Retail", source="New Retail")
+    news["matched_topics"] = ["product_launch"]
+    news["event_category"] = "product_launch"
 
     post = format_post(news)
 
-    assert "Россияне меняют привычки | New Retail" not in post
-    assert "Россияне меняют привычки" in post
+    assert "LEGO выпустила новый набор | New Retail" not in post
+    assert "LEGO выпустила новый набор" in post
 
 
 def test_photo_caption_stays_inside_safe_limit():
-    news = item("Бренд представил новый логотип", "слово " * 1000)
+    news = item("Apple представила новый логотип", "слово " * 1000)
     assert is_relevant(news) is True
 
     assert len(format_photo_caption(news)) <= 1000

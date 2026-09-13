@@ -18,9 +18,9 @@ def collect_rss(source):
                 "url": entry.get("link", ""),
                 "published_at": entry.get("published", ""),
                 "description": entry.get("summary", ""),
+                "publisher": (entry.get("source") or {}).get("title"),
             },
             source["name"],
         )
         for entry in feed.entries
     ]
-

@@ -49,18 +49,18 @@ and Telegram presentation live in `project/`.
 
 ## Channel behavior
 
-- Russian coverage: Cossa, AdIndex, New Retail, and Retail.ru.
-- International coverage: Marketing Dive, Retail Dive, The Drum, and Design
-  Week, restricted by publisher through Google News RSS.
-- Editorial categories: consumer trends, collaborations, rebrands, campaigns,
-  product launches, research, retail innovation, and market shifts.
-- Routine appointments, events, roundups, how-to articles, and workforce news
-  are excluded before scoring.
-- Each post has a category header, the source facts, a short "why it matters"
-  explanation, a linked source, date, and category tags.
+- Direct coverage: Postium collaborations, AdIndex, New Retail, and Retail.ru.
+- Discovery feeds target famous consumer, technology, entertainment, food, and
+  fashion brands. Google News items are accepted only from trusted publishers.
+- A recognizable brand and a concrete launch, collaboration, campaign,
+  rebrand, meme, controversy, or other viral event are both required.
+- Routine appointments, market research, events, roundups, how-to articles,
+  financial reports, and workforce news are excluded before scoring.
+- Posts contain a headline, no more than two factual sentences, a short closing
+  reaction, and a linked source. There are no category banners or hashtags.
 
 The default settings consider the last three days, require a score of at least
-six, and select one story per run. Scheduling is intentionally not configured.
+eight, and select one story per run. Scheduling is intentionally not configured.
 
 To build a real channel, follow [PROJECT_SETUP.md](PROJECT_SETUP.md). For the
 design and LiveCrime mapping, see [ARCHITECTURE.md](ARCHITECTURE.md).

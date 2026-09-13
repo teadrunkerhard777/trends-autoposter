@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 
-from collectors.normalizer import normalize_date
+from collectors.normalizer import normalize_date, normalize_item
 
 
 def test_normalize_date_preserves_datetime():
@@ -52,3 +52,12 @@ def test_normalize_date_parses_iso_date_with_offset():
 
 def test_normalize_date_rejects_invalid_value():
     assert normalize_date("not-a-date") is None
+
+
+def test_normalize_item_keeps_optional_publisher():
+    result = normalize_item(
+        {"title": "Story", "url": "https://example.test", "publisher": "Outlet"},
+        "Aggregator",
+    )
+
+    assert result["publisher"] == "Outlet"

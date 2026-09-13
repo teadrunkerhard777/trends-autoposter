@@ -51,7 +51,7 @@ def normalize_item(item, source_name):
         "source": source_name,
         **{
             key: item[key]
-            for key in ("article_text", "image_url")
+            for key in ("article_text", "image_url", "publisher")
             if key in item
         },
     }
