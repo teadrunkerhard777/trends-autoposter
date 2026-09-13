@@ -1,5 +1,6 @@
 """Short Telegram presentation for viral stories about famous brands."""
 
+import hashlib
 import re
 from datetime import datetime
 from html import escape
@@ -14,11 +15,52 @@ PHOTO_CAPTION_LIMIT = 1000
 EXCERPT_LIMIT = 560
 
 PUNCHLINES = {
-    "collaboration": "Берём?",
-    "product_launch": "Ждём на полках.",
-    "campaign": "Заметили.",
-    "rebrand": "Как вам?",
-    "viral_event": "Ну конечно.",
+    "collaboration": (
+        "Вот это союз.",
+        "Неожиданная пара.",
+        "Коллаб, который мы заслужили.",
+        "Хотим или листаем дальше?",
+        "Кто бы мог подумать.",
+        "",
+        "",
+    ),
+    "product_launch": (
+        "Уже в списке желаний.",
+        "Проверим в деле.",
+        "Очередь занимать?",
+        "Нам это надо?",
+        "Выглядит убедительно.",
+        "",
+        "",
+    ),
+    "campaign": (
+        "Заметили. И запомнили.",
+        "Маркетологи не зря старались.",
+        "Сработало?",
+        "Мимо такого не пройти.",
+        "Смело.",
+        "",
+        "",
+    ),
+    "rebrand": (
+        "Старый логотип вышел из чата.",
+        "Привыкнем?",
+        "Было лучше?",
+        "Новый образ принят.",
+        "Смело.",
+        "",
+        "",
+    ),
+    "viral_event": (
+        "Интернет уже всё решил.",
+        "Ну конечно.",
+        "Сценаристы отдыхают.",
+        "Этого никто не заказывал.",
+        "Дальше — больше.",
+        "Совпадение? Не думаем.",
+        "",
+        "",
+    ),
 }
 
 CATEGORY_FOOTERS = {
@@ -56,7 +98,7 @@ def _format(news_item, limit):
     url = escape(news_item.get("url", ""), quote=True)
     date = _format_date(news_item.get("published_at"))
     category = news_item.get("event_category")
-    punchline = PUNCHLINES.get(category, "")
+    punchline = _select_punchline(news_item, category)
     topic, hashtag = CATEGORY_FOOTERS.get(category, ("бренды", "#Бренды"))
     footer = (
         f"📅 {date}\n"
@@ -80,6 +122,15 @@ def _format(news_item, limit):
         parts.append(escape(punchline))
     parts.append(footer)
     return "\n\n".join(parts)
+
+
+def _select_punchline(news_item, category):
+    """Choose a stable varied reaction, including intentionally silent posts."""
+
+    variants = PUNCHLINES.get(category, ("",))
+    identity = f"{news_item.get('url', '')}\n{news_item.get('title', '')}"
+    digest = hashlib.sha256(identity.encode("utf-8")).digest()
+    return variants[int.from_bytes(digest[:4], "big") % len(variants)]
 
 
 def _short_excerpt(text, title):

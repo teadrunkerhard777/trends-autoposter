@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 
 from processing.filters import add_scores, filter_by_minimum_score, filter_relevant
 from project.filters import is_relevant
-from project.formatter import format_photo_caption, format_post
+from project.formatter import _select_punchline, format_photo_caption, format_post
 from project.scoring import calculate_score
 from project.settings import MIN_PUBLICATION_SCORE
 from project.sources import (
@@ -135,13 +135,29 @@ def test_formatter_is_short_lively_and_html_safe():
     assert "Apple &lt;X&gt;" in post
     assert "Смелее &amp; ярче" in post
     assert "Третья лишняя" not in post
-    assert "Ждём на полках." in post
+    assert "Берём?" not in post
     assert "Почему это важно" not in post
     assert "📅 2 января 2026" in post
     assert "📰 <b>Тренды и Бренды:</b> новинки" in post
     assert ">Читать источник</a>" in post
     assert "#Новинки" in post
     assert 'href="https://example.test/item"' in post
+
+
+def test_formatter_reactions_are_stable_but_varied_between_stories():
+    reactions = set()
+
+    for number in range(30):
+        news = item(f"Apple выпустила новинку номер {number}")
+        news["url"] = f"https://example.test/item-{number}"
+        news["event_category"] = "product_launch"
+        reaction = _select_punchline(news, "product_launch")
+        reactions.add(reaction)
+        assert reaction == _select_punchline(news, "product_launch")
+
+    assert len(reactions) >= 5
+    assert "" in reactions
+    assert "Берём?" not in reactions
 
 
 def test_formatter_uses_real_google_news_publisher():
