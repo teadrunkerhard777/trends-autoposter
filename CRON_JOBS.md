@@ -30,6 +30,27 @@
 Сохраните GitHub-токен только в приватном заголовке `Authorization`. Не
 добавляйте настоящий токен в URL, тело запроса, репозиторий, скриншоты или логи.
 
+## Расширенные настройки запроса
+
+В блоке **Advanced / Расширенные настройки** укажите:
+
+- Request method: `POST`
+- Request timeout: `30 seconds`
+- Follow redirects / Treat redirects as success: `Off`
+- Save responses: `Off` после успешной проверки
+- HTTP basic authentication: `Off`
+- Request body type: `Raw / application/json`
+- Request body: `{"ref":"main"}` без переносов и дополнительных полей
+
+Если интерфейс предлагает автоматические повторы запроса, отключите их. При
+потере ответа повторный `POST` может запустить второй workflow. Защитная
+настройка `concurrency` не даст двум публикациям идти одновременно, но лишний
+запуск всё равно потратит время GitHub Actions.
+
+GitHub должен ответить успешным кодом `200`. Ответы `401` и `403` означают
+ошибку токена или недостаточное разрешение **Actions — Read and write**; `404`
+обычно означает неверный адрес workflow, репозиторий или ветку.
+
 ## 3. Установите расписание
 
 Запускать ежедневно в:
@@ -41,6 +62,30 @@
 
 Если на cron-job.org выбран UTC, укажите 06:00, 10:00, 14:00 и 18:00 UTC.
 Эквивалентное cron-выражение: `0 6,10,14,18 * * *`.
+
+В расширенном редакторе расписания:
+
+- Timezone: `Asia/Yekaterinburg`
+- Minutes: `0`
+- Hours: `11, 15, 19, 23`
+- Days of month: `Every day`
+- Months: `Every month`
+- Days of week: `Every day`
+- Expiration date: `Never`
+
+Не задавайте одновременно локальные часы и UTC-выражение: выберите один из
+двух вариантов, иначе время запуска сместится на пять часов.
+
+## Уведомления
+
+Рекомендуемые настройки:
+
+- Notify on failure: `On`
+- Number of failures before notification: `1`
+- Notify when execution succeeds after failure: `On`
+- Notify when job is automatically disabled: `On`
+- Notify on every success: `Off`
+- SSL certificate expiry notification: `Off` — запрос идёт на GitHub
 
 ## 4. Проверьте один раз
 
