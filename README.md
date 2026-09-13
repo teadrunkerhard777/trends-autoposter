@@ -80,8 +80,9 @@ and Telegram presentation live in `project/`.
   autoposter does not place watermarks, frames, or generated text over it.
 
 The default settings consider the last three days, require a score of at least
-eight, and select one story per run. GitHub Actions runs every day at 11:00,
-15:00, 19:00, and 23:00 Asia/Yekaterinburg time. Manual runs remain available.
+eight, and select one story per run. The workflow is started through
+`workflow_dispatch`; cron-job.org supplies the daily schedule. Manual runs
+remain available. See [CRON_JOBS.md](CRON_JOBS.md) for the exact setup.
 
 To build a real channel, follow [PROJECT_SETUP.md](PROJECT_SETUP.md). For the
 design and LiveCrime mapping, see [ARCHITECTURE.md](ARCHITECTURE.md).
