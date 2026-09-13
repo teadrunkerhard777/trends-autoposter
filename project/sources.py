@@ -41,7 +41,21 @@ def extract_new_retail_article(soup):
     return "\n\n".join(body.stripped_strings)
 
 
-SOURCE_EXTRACTORS = {"New Retail": extract_new_retail_article}
+def extract_retail_article(soup):
+    """Extract the Retail.ru story without its subscription banner."""
+    body = soup.select_one(".contain__description")
+    if body is None:
+        return ""
+    for node in body.select("script, style"):
+        node.decompose()
+    return "\n\n".join(body.stripped_strings)
+
+
+SOURCE_EXTRACTORS = {
+    "New Retail": extract_new_retail_article,
+    "Retail.ru": extract_retail_article,
+}
 SOURCE_STOP_MARKERS = {
     "New Retail": ("Согласен с политикой конфиденциальности",),
+    "Retail.ru": ("Получайте новости индустрии ритейла первым",),
 }

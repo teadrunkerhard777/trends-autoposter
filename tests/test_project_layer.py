@@ -7,10 +7,14 @@ from project.filters import is_relevant
 from project.formatter import format_photo_caption, format_post
 from project.scoring import calculate_score
 from project.settings import MIN_PUBLICATION_SCORE
-from project.sources import SOURCES, extract_new_retail_article
+from project.sources import (
+    SOURCES,
+    extract_new_retail_article,
+    extract_retail_article,
+)
 
 
-def item(title, description="", source="Sostav"):
+def item(title, description="", source="Cossa"):
     return {
         "title": title,
         "description": description,
@@ -60,6 +64,12 @@ def test_filter_rejects_workforce_demand_research():
     assert is_relevant(news) is False
 
 
+def test_filter_rejects_evergreen_branding_explainer():
+    news = item("Айдентика: что делает бренд узнаваемым")
+
+    assert is_relevant(news) is False
+
+
 def test_title_category_takes_priority_over_description_side_topics():
     news = item(
         "Бренд представил новый логотип",
@@ -96,6 +106,32 @@ def test_formatter_escapes_html_and_adds_editorial_context():
     assert 'href="https://example.test/item"' in post
 
 
+def test_formatter_uses_category_header_and_cleans_google_news_label():
+    news = item(
+        "Brand unveils new identity - Design Week",
+        source="Design Week — Google News",
+    )
+    assert is_relevant(news) is True
+
+    post = format_post(news)
+
+    assert "🎨 РЕБРЕНДИНГ" in post
+    assert "Brand unveils new identity - Design Week" not in post
+    assert ">Design Week</a>" in post
+    assert "Google News" not in post
+
+
+def test_formatter_removes_direct_source_suffix_from_title():
+    news = item("Россияне меняют привычки | New Retail", source="New Retail")
+    news["matched_topics"] = ["consumer_trend"]
+    news["event_category"] = "consumer_trend"
+
+    post = format_post(news)
+
+    assert "Россияне меняют привычки | New Retail" not in post
+    assert "Россияне меняют привычки" in post
+
+
 def test_photo_caption_stays_inside_safe_limit():
     news = item("Бренд представил новый логотип", "слово " * 1000)
     assert is_relevant(news) is True
@@ -114,3 +150,13 @@ def test_new_retail_extractor_keeps_only_article_body():
     assert extract_new_retail_article(soup) == (
         "Главный вывод.\n\nПодробности исследования."
     )
+
+
+def test_retail_extractor_skips_subscription_outside_story():
+    soup = BeautifulSoup(
+        '<div class="subscribe">Получайте новости первыми</div>'
+        '<div class="contain__description"><p>Факты новости.</p></div>',
+        "html.parser",
+    )
+
+    assert extract_retail_article(soup) == "Факты новости."

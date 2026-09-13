@@ -20,6 +20,17 @@ CATEGORY_LABELS = {
     "market_shift": "рынок",
 }
 
+CATEGORY_HEADERS = {
+    "collaboration": "🤝 КОЛЛАБОРАЦИЯ",
+    "rebrand": "🎨 РЕБРЕНДИНГ",
+    "campaign": "📣 КАМПАНИЯ",
+    "product_launch": "🆕 НОВЫЙ ПРОДУКТ",
+    "consumer_trend": "📈 ТРЕНД",
+    "research": "📊 ИССЛЕДОВАНИЕ",
+    "retail_innovation": "🛍 НОВЫЙ РИТЕЙЛ",
+    "market_shift": "🌍 РЫНОК",
+}
+
 CATEGORY_INSIGHTS = {
     "collaboration": "Коллаборации помогают брендам обмениваться аудиториями и быстро входить в новые культурные контексты.",
     "rebrand": "Изменение айдентики часто показывает, как бренд переосмысляет аудиторию, категорию или своё место на рынке.",
@@ -45,8 +56,9 @@ def format_photo_caption(news_item):
 
 
 def _format(news_item, limit):
-    title = escape(news_item.get("title", "Untitled")[:500])
-    source = escape(news_item.get("source", "Unknown source"))
+    source_name = news_item.get("source", "Неизвестный источник")
+    title = escape(_display_title(news_item.get("title", "Без заголовка"), source_name)[:500])
+    source = escape(_display_source(source_name))
     url = escape(news_item.get("url", ""), quote=True)
     date = _format_date(news_item.get("published_at"))
     topics = news_item.get("matched_topics", [])
@@ -54,16 +66,16 @@ def _format(news_item, limit):
         f"#{CATEGORY_LABELS.get(topic, topic).replace(' ', '')}"
         for topic in topics[:3]
     )
-    footer = (
-        f"📅 {date}\n"
-        f"📰 {source}\n\n"
-        f'🔗 <a href="{url}">Источник</a>'
-    )
+    footer = f'🔗 <a href="{url}">{source}</a> · {date}'
 
     if tags:
         footer = f"{footer}\n\n{tags}"
 
-    header = f"⚡️ <b>{title}</b>"
+    category_header = CATEGORY_HEADERS.get(
+        news_item.get("event_category"),
+        "⚡️ ТРЕНДЫ И БРЕНДЫ",
+    )
+    header = f"<b>{category_header}</b>\n\n<b>{title}</b>"
     insight = CATEGORY_INSIGHTS.get(news_item.get("event_category"))
     insight_block = f"\n\n<b>Почему это важно:</b> {escape(insight)}" if insight else ""
     fixed_length = len(header) + len(insight_block) + len(footer) + 4
@@ -84,3 +96,16 @@ def _format_date(value):
         return "дата не указана"
 
     return value.strftime("%d.%m.%Y")
+
+
+def _display_source(source):
+    return source.removesuffix(" — Google News")
+
+
+def _display_title(title, source):
+    display_source = _display_source(source)
+    for separator in (" - ", " | "):
+        suffix = f"{separator}{display_source}"
+        if title.endswith(suffix):
+            return title[:-len(suffix)]
+    return title

@@ -47,6 +47,21 @@ The project combines direct Russian industry RSS feeds with narrow Google News
 RSS searches for international coverage. Relevance, event categories, scoring,
 and Telegram presentation live in `project/`.
 
+## Channel behavior
+
+- Russian coverage: Cossa, AdIndex, New Retail, and Retail.ru.
+- International coverage: Marketing Dive, Retail Dive, The Drum, and Design
+  Week, restricted by publisher through Google News RSS.
+- Editorial categories: consumer trends, collaborations, rebrands, campaigns,
+  product launches, research, retail innovation, and market shifts.
+- Routine appointments, events, roundups, how-to articles, and workforce news
+  are excluded before scoring.
+- Each post has a category header, the source facts, a short "why it matters"
+  explanation, a linked source, date, and category tags.
+
+The default settings consider the last three days, require a score of at least
+six, and select one story per run. Scheduling is intentionally not configured.
+
 To build a real channel, follow [PROJECT_SETUP.md](PROJECT_SETUP.md). For the
 design and LiveCrime mapping, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
