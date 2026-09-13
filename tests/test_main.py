@@ -66,6 +66,7 @@ def test_run_applies_diversity_after_event_dedup(monkeypatch):
     )
     monkeypatch.setattr(main, "sort_by_score", lambda items: items)
     monkeypatch.setattr(main, "load_article_data", lambda items: None)
+    monkeypatch.setattr(main, "is_publishable", lambda item: True)
 
     def deduplicate(items, event_settings, debug=False):
         stages.append("dedup")

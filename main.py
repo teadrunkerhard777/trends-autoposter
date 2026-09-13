@@ -34,7 +34,7 @@ from processing.filters import (
     filter_relevant,
     sort_by_score,
 )
-from project.filters import is_relevant
+from project.filters import is_publishable, is_relevant
 from project.formatter import format_photo_caption, format_post
 from project.scoring import calculate_score
 from project.sources import SOURCE_EXTRACTORS, SOURCE_STOP_MARKERS
@@ -223,8 +223,9 @@ def run():
 
     # Generic event fingerprints use article facts, so loading precedes dedup.
     load_article_data(ranked_news)
+    publishable_news = [item for item in ranked_news if is_publishable(item)]
     unique_news = remove_duplicates(
-        ranked_news,
+        publishable_news,
         EVENT_DEDUP_SETTINGS,
         debug=DRY_RUN,
     )
@@ -247,6 +248,7 @@ def run():
     print(f"Fresh: {len(fresh_news)}")
     print(f"Relevant: {len(relevant_news)}")
     print(f"Minimum score: {len(scored_news)}")
+    print(f"Publishable: {len(publishable_news)}")
     print(f"Unique: {len(unique_news)}")
     print(f"New: {len(new_news)}")
     print(f"Selected: {len(selected_news)}")

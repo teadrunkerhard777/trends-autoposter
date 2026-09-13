@@ -166,6 +166,8 @@ def is_relevant(news_item):
     news_item["event_category"] = matched_topics[0] if matched_topics else None
     news_item.setdefault("event_locations", [])
 
+    if not re.search(r"[а-яё]", title):
+        return False
     if any(keyword in text for keyword in NOISE_KEYWORDS):
         return False
     if news_item.get("source", "").endswith("Google News"):
@@ -173,6 +175,20 @@ def is_relevant(news_item):
         if not any(name in publisher for name in TRUSTED_PUBLISHERS):
             return False
     return bool(matched_brands and matched_topics)
+
+
+def is_publishable(news_item):
+    """Require a complete Russian visual post with a direct source link."""
+
+    url = news_item.get("url", "").casefold()
+    article_text = " ".join(news_item.get("article_text", "").split())
+    image_url = news_item.get("image_url")
+
+    if "news.google.com/" in url:
+        return False
+    if len(article_text) < 80:
+        return False
+    return bool(image_url)
 
 
 def _contains_keyword(text, keyword):

@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from bs4 import BeautifulSoup
 
 from processing.filters import add_scores, filter_by_minimum_score, filter_relevant
-from project.filters import is_relevant
+from project.filters import is_publishable, is_relevant
 from project.formatter import _select_punchline, format_photo_caption, format_post
 from project.scoring import calculate_score
 from project.settings import MIN_PUBLICATION_SCORE
@@ -93,6 +93,29 @@ def test_google_news_requires_a_trusted_original_publisher():
     assert is_relevant(trusted) is True
 
 
+def test_english_title_is_not_relevant_for_russian_channel():
+    news = item("GTA VI launches in November", source="Игры и развлечения — Google News")
+    news["publisher"] = "The Drum"
+
+    assert is_relevant(news) is False
+
+
+def test_publishable_post_requires_text_image_and_direct_link():
+    complete = item("Apple представила новый продукт")
+    complete["article_text"] = "Содержательный текст новости о новом продукте Apple. " * 3
+    complete["image_url"] = "https://cdn.example.test/apple.jpg"
+
+    assert is_publishable(complete) is True
+
+    google_link = complete | {"url": "https://news.google.com/rss/articles/id"}
+    no_text = complete | {"article_text": "Коротко."}
+    no_image = complete | {"image_url": None}
+
+    assert is_publishable(google_link) is False
+    assert is_publishable(no_text) is False
+    assert is_publishable(no_image) is False
+
+
 def test_title_category_takes_priority_over_description_side_topics():
     news = item(
         "Apple представила новый логотип",
@@ -166,7 +189,7 @@ def test_formatter_uses_real_google_news_publisher():
         source="Знаменитые бренды — Google News",
     )
     news["publisher"] = "Design Week"
-    assert is_relevant(news) is True
+    news["event_category"] = "rebrand"
 
     post = format_post(news)
 
