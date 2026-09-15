@@ -7,8 +7,8 @@ The reusable layer is ordinary Python modules:
 - `collectors/` converts RSS, declarative HTML, or local demo items into one shape;
 - `processing/` handles date filtering, score application, ranking, and dedup;
 - `article/` fetches one HTML page and derives text plus image URL;
-- `generation/` contains theme-neutral text-length helpers;
-- `publishing/` sends Telegram text/photos safely;
+- `generation/` contains theme-neutral text-length and MP4-card helpers;
+- `publishing/` sends Telegram text, photos, and native videos safely;
 - `storage/` stores confirmed publications and compact event fingerprints;
 - `core/` configures TLS and prevents concurrent local runs.
 
@@ -37,6 +37,7 @@ enabled sources
 -> history or DRY_RUN bypass
 -> MAX_NEWS_PER_RUN
 -> project formatter
+-> optional branded MP4 card for the 15:00/19:00 slots
 -> Telegram publisher or DRY_RUN output
 -> confirmed-success history update
 ```

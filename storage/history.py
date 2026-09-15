@@ -46,12 +46,27 @@ def is_published(news_item, history, event_settings=None):
 
 def add_to_history(news_item, history, event_settings=None):
     published_at = news_item.get("published_at")
-    history.append({
+    entry = {
         "title": news_item.get("title", ""),
         "url": news_item.get("url", ""),
         "published_at": published_at.isoformat() if published_at else None,
         "source": news_item.get("source"),
         "event_fingerprint": build_event_fingerprint(news_item, event_settings),
-    })
+    }
+
+    if news_item.get("publication_media"):
+        entry["publication_media"] = news_item["publication_media"]
+    if news_item.get("video_slot"):
+        entry["video_slot"] = news_item["video_slot"]
+
+    history.append(entry)
     return history
 
+
+def has_video_slot(history, slot):
+    """Return whether a confirmed video already occupies this daily slot."""
+    return any(
+        entry.get("publication_media") == "video"
+        and entry.get("video_slot") == slot
+        for entry in history
+    )

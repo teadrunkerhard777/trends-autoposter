@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 import requests
 
+from generation.video import TemporaryVideo
 from main import publish_selected_news
 from publishing.telegram import (
     IMAGE_DOWNLOAD_USER_AGENT,
@@ -86,6 +87,40 @@ def test_successful_remote_photo_does_not_call_text_fallback():
 
     assert changed is True
     assert len(history) == 1
+
+
+def test_video_slot_sends_native_video_and_records_slot(tmp_path):
+    image_path = tmp_path / "photo.jpg"
+    video_path = tmp_path / "clip.mp4"
+    image_path.write_bytes(b"image")
+    video_path.write_bytes(b"video")
+    sent = []
+    history = []
+
+    changed = publish_selected_news(
+        [news("https://img.test/photo.jpg")],
+        history,
+        False,
+        "single",
+        send_post=fail_if_called,
+        send_photo=fail_if_called,
+        send_video=lambda video, caption, **kwargs: (
+            sent.append((video.read(), kwargs["filename"]))
+            or TelegramSendResult(True)
+        ),
+        download_image=lambda *args, **kwargs: TemporaryImage(
+            image_path, "image/jpeg", 5
+        ),
+        render_video=lambda *args, **kwargs: TemporaryVideo(video_path, 5),
+        video_slot="2026-01-01-15",
+    )
+
+    assert changed is True
+    assert sent == [(b"video", "clip.mp4")]
+    assert history[0]["publication_media"] == "video"
+    assert history[0]["video_slot"] == "2026-01-01-15"
+    assert image_path.exists() is False
+    assert video_path.exists() is False
 
 
 def test_confirmed_remote_fetch_error_uses_temporary_file(tmp_path):

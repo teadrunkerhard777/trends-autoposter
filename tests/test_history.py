@@ -1,6 +1,12 @@
 from datetime import datetime, timezone
 
-from storage.history import add_to_history, is_published, load_history, save_history
+from storage.history import (
+    add_to_history,
+    has_video_slot,
+    is_published,
+    load_history,
+    save_history,
+)
 
 
 def news(url="https://example.test/story"):
@@ -33,3 +39,14 @@ def test_legacy_history_without_fingerprint_remains_url_compatible():
     assert is_published(item, [{"url": item["url"]}]) is True
     assert is_published(item, [{"url": "https://other.test"}]) is False
 
+
+def test_confirmed_video_slot_is_recorded_and_detected():
+    item = news()
+    item["publication_media"] = "video"
+    item["video_slot"] = "2026-01-01-15"
+    history = []
+
+    add_to_history(item, history)
+
+    assert has_video_slot(history, "2026-01-01-15") is True
+    assert has_video_slot(history, "2026-01-01-19") is False

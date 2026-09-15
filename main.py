@@ -1,5 +1,8 @@
 """One understandable collection-to-publication pipeline."""
 
+from datetime import datetime
+from zoneinfo import ZoneInfo
+
 from bs4 import FeatureNotFound
 from bs4.exceptions import ParserRejectedMarkup
 from requests import RequestException
@@ -18,10 +21,16 @@ from config import (
     DIVERSITY_SETTINGS,
     EVENT_DEDUP_SETTINGS,
     MAX_NEWS_PER_RUN,
+    MEDIA_MODE,
     MIN_PUBLICATION_SCORE,
     NEWS_LOOKBACK_DAYS,
     POST_MODE,
     SOURCES,
+    VIDEO_CANVAS_SIZE,
+    VIDEO_DURATION_SECONDS,
+    VIDEO_PUBLICATION_HOURS,
+    VIDEO_STYLE,
+    VIDEO_TIMEZONE,
 )
 from core.environment import configure_ssl
 from core.run_lock import AlreadyRunningError, single_instance_lock
@@ -35,7 +44,8 @@ from processing.filters import (
     sort_by_score,
 )
 from project.filters import is_publishable, is_relevant
-from project.formatter import format_photo_caption, format_post
+from generation.video import VideoRenderError, render_video_card
+from project.formatter import format_photo_caption, format_post, format_video_card
 from project.scoring import calculate_score
 from project.sources import SOURCE_EXTRACTORS, SOURCE_STOP_MARKERS
 from publishing.telegram import (
@@ -43,9 +53,11 @@ from publishing.telegram import (
     download_image_temp,
     send_telegram_photo,
     send_telegram_post,
+    send_telegram_video,
 )
 from storage.history import (
     add_to_history,
+    has_video_slot,
     is_published,
     load_history,
     save_history,
@@ -123,10 +135,13 @@ def publish_selected_news(
     post_mode,
     send_post=send_telegram_post,
     send_photo=send_telegram_photo,
+    send_video=send_telegram_video,
     download_image=download_image_temp,
+    render_video=render_video_card,
     add_history=add_to_history,
     event_settings=EVENT_DEDUP_SETTINGS,
     sources=None,
+    video_slot=None,
 ):
     """Publish each selected item once and update history on confirmation."""
 
@@ -140,6 +155,9 @@ def publish_selected_news(
 
         if dry_run:
             print("[DRY RUN] Telegram was not called")
+            print(f"Media: {'video' if video_slot and image_url else 'photo/text'}")
+            if video_slot:
+                print(f"Video slot: {video_slot}")
             print(f"Image URL: {image_url or 'NOT FOUND'}")
             print(caption if image_url else post)
             continue
@@ -151,7 +169,45 @@ def publish_selected_news(
         succeeded = False
         uncertain = False
 
-        if image_url:
+        if video_slot and image_url:
+            temporary_image = None
+            temporary_video = None
+
+            try:
+                source_config = source_configs.get(item.get("source"))
+                temporary_image = download_image(
+                    image_url,
+                    source_config=source_config,
+                )
+                temporary_video = render_video(
+                    temporary_image.path,
+                    format_video_card(item),
+                    VIDEO_STYLE,
+                    VIDEO_CANVAS_SIZE,
+                    VIDEO_DURATION_SECONDS,
+                )
+
+                with temporary_video.path.open("rb") as video_file:
+                    video_result = send_video(
+                        video_file,
+                        caption,
+                        filename=temporary_video.path.name,
+                    )
+
+                succeeded = bool(video_result)
+                uncertain = getattr(video_result, "uncertain", False)
+                if succeeded:
+                    item["publication_media"] = "video"
+                    item["video_slot"] = video_slot
+            except (ImageDownloadError, VideoRenderError, OSError) as error:
+                print(f"Video fallback warning: {type(error).__name__}")
+            finally:
+                if temporary_video and temporary_video.path.exists():
+                    temporary_video.path.unlink()
+                if temporary_image and temporary_image.path.exists():
+                    temporary_image.path.unlink()
+
+        if image_url and not succeeded and not uncertain:
             photo_result = send_photo(image_url, caption)
             succeeded = bool(photo_result)
             uncertain = getattr(photo_result, "uncertain", False)
@@ -193,6 +249,7 @@ def publish_selected_news(
 
         # Uncertain delivery may already exist in Telegram: never duplicate it.
         if succeeded:
+            item.setdefault("publication_media", "photo" if image_url else "text")
             add_history(item, history, event_settings)
             history_changed = True
 
@@ -207,6 +264,25 @@ def _source_configs_by_name(sources=None):
         for source in (SOURCES if sources is None else sources)
         if source.get("name")
     }
+
+
+def resolve_video_slot(media_mode, history, now=None):
+    """Choose one daily local video slot, respecting confirmed history."""
+    local_now = now or datetime.now(ZoneInfo(VIDEO_TIMEZONE))
+
+    if local_now.tzinfo is None:
+        local_now = local_now.replace(tzinfo=ZoneInfo(VIDEO_TIMEZONE))
+    else:
+        local_now = local_now.astimezone(ZoneInfo(VIDEO_TIMEZONE))
+
+    if media_mode == "photo":
+        return None
+    if media_mode == "auto" and local_now.hour not in VIDEO_PUBLICATION_HOURS:
+        return None
+
+    slot_hour = local_now.hour
+    slot = f"{local_now.date().isoformat()}-{slot_hour:02d}"
+    return None if has_video_slot(history, slot) else slot
 
 
 def run():
@@ -230,6 +306,7 @@ def run():
         debug=DRY_RUN,
     )
     history = load_history()
+    video_slot = resolve_video_slot(MEDIA_MODE, history)
 
     if DRY_RUN:
         new_news = unique_news.copy()
@@ -252,12 +329,14 @@ def run():
     print(f"Unique: {len(unique_news)}")
     print(f"New: {len(new_news)}")
     print(f"Selected: {len(selected_news)}")
+    print(f"Publication media: {'video' if video_slot else 'photo/text'}")
 
     history_changed = publish_selected_news(
         selected_news,
         history,
         DRY_RUN,
         POST_MODE,
+        video_slot=video_slot,
     )
 
     if not DRY_RUN and history_changed:

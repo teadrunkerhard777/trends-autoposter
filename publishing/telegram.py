@@ -99,6 +99,33 @@ def send_telegram_photo(photo, caption, filename=None, mime_type=None):
     return result
 
 
+def send_telegram_video(video, caption, filename=None):
+    """Send an open MP4 file as one native Telegram video message."""
+    if not video:
+        return TelegramSendResult(False, "video is missing")
+
+    files = {
+        "video": (
+            filename or "autoposter-video.mp4",
+            video,
+            "video/mp4",
+        )
+    }
+    result = _send_telegram_request(
+        "sendVideo",
+        {
+            "caption": caption,
+            "parse_mode": "HTML",
+            "supports_streaming": "true",
+        },
+        files=files,
+    )
+
+    if not result:
+        print(f"Video error: {result.error_reason}")
+    return result
+
+
 def download_image_temp(image_url, source_config=None):
     """Stream a validated image to the operating-system temp directory."""
 

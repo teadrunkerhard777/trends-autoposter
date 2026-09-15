@@ -84,7 +84,9 @@ def test_run_applies_diversity_after_event_dedup(monkeypatch):
     monkeypatch.setattr(main, "remove_duplicates", deduplicate)
     monkeypatch.setattr(main, "select_diverse", diversify)
     monkeypatch.setattr(main, "load_history", lambda: [])
-    monkeypatch.setattr(main, "publish_selected_news", lambda *args: False)
+    monkeypatch.setattr(
+        main, "publish_selected_news", lambda *args, **kwargs: False
+    )
     monkeypatch.setattr(main, "DRY_RUN", True)
     monkeypatch.setattr(main, "MAX_NEWS_PER_RUN", 2)
     monkeypatch.setattr(main, "DIVERSITY_SETTINGS", settings)

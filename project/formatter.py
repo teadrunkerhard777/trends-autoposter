@@ -87,6 +87,22 @@ def format_photo_caption(news_item):
     return _format(news_item, PHOTO_CAPTION_LIMIT)
 
 
+def format_video_card(news_item):
+    """Return short plain-text copy to burn into a branded video card."""
+    publisher = news_item.get("publisher") or _display_source(
+        news_item.get("source", "")
+    )
+    title = _display_title(news_item.get("title", "Без заголовка"), publisher)
+    category = news_item.get("event_category")
+    topic, _ = CATEGORY_FOOTERS.get(category, ("главное", "#Бренды"))
+    return {
+        "eyebrow": topic.upper(),
+        "title": title[:180],
+        "brand": CHANNEL_TITLE.upper(),
+        "tagline": "Коротко о главном",
+    }
+
+
 def _format(news_item, limit):
     source_name = news_item.get("source", "Неизвестный источник")
     publisher_name = news_item.get("publisher") or _display_source(source_name)

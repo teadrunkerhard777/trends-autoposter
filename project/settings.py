@@ -12,6 +12,19 @@ MAX_NEWS_PER_RUN = 1
 MIN_PUBLICATION_SCORE = 8
 POST_MODE = "single"
 
+# The existing scheduler runs at 11:00, 15:00, 19:00 and 23:00 local time.
+# Turn the two middle runs into native Telegram video posts.
+VIDEO_TIMEZONE = "Asia/Yekaterinburg"
+VIDEO_PUBLICATION_HOURS = (15, 19)
+VIDEO_DURATION_SECONDS = 8
+VIDEO_CANVAS_SIZE = (1080, 1350)
+VIDEO_STYLE = {
+    "accent": "#FFD54A",
+    "background": "#101319",
+    "foreground": "#FFFFFF",
+    "muted": "#D5D9E2",
+}
+
 EVENT_DEDUP_SETTINGS = {
     "text_limit": 1600, "time_window_hours": 48, "min_shared_tokens": 5,
     "min_token_overlap": 0.45, "min_token_jaccard": 0.20, "dense_match_tokens": 7,

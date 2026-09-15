@@ -13,6 +13,7 @@ and around the world. Local execution remains safe by default.
 - Generic article text and `og:image` / `twitter:image` extraction.
 - Isolated source-specific article extractors and stop markers.
 - Telegram text/photo publishing with temporary-file fallback.
+- Native eight-second MP4 cards for the 15:00 and 19:00 publication slots.
 - Duplicate protection for uncertain Telegram network outcomes.
 - JSON publication history with backward-compatible fingerprints.
 - Safe `DRY_RUN=True`, a local process lock, tests, and GitHub Actions.
@@ -76,13 +77,21 @@ and Telegram presentation live in `project/`.
   > Новые продукты, громкие сделки, популярные бренды, свежие тренды и всё, о
   > чём будут говорить завтра.
 
-- Individual posts use the original editorial image from the source; the
-  autoposter does not place watermarks, frames, or generated text over it.
+- Regular posts use the original editorial image from the source. At 15:00 and
+  19:00 Asia/Yekaterinburg the image becomes the background of a short branded
+  MP4 card displayed directly in Telegram with the usual source caption.
 
 The default settings consider the last three days, require a score of at least
 eight, and select one story per run. The workflow is started through
 `workflow_dispatch`; cron-job.org supplies the daily schedule. Manual runs
 remain available. See [CRON_JOBS.md](CRON_JOBS.md) for the exact setup.
+
+`AUTOPOSTER_MEDIA_MODE` controls media selection: `auto` uses the scheduled
+slots, `photo` disables video for a run, and `video` forces it for a manual or
+diagnostic run. A confirmed video stores its dated slot in publication history,
+so restarting the same slot cannot publish a second clip. Rendering failure
+falls back to the existing photo/text flow; uncertain Telegram delivery does
+not fall back and therefore cannot create a duplicate.
 
 To build a real channel, follow [PROJECT_SETUP.md](PROJECT_SETUP.md). For the
 design and LiveCrime mapping, see [ARCHITECTURE.md](ARCHITECTURE.md).

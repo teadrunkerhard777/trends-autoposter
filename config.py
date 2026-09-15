@@ -11,6 +11,11 @@ from project.settings import (
     MIN_PUBLICATION_SCORE,
     NEWS_LOOKBACK_DAYS,
     POST_MODE,
+    VIDEO_CANVAS_SIZE,
+    VIDEO_DURATION_SECONDS,
+    VIDEO_PUBLICATION_HOURS,
+    VIDEO_STYLE,
+    VIDEO_TIMEZONE,
 )
 from project.sources import SOURCES
 
@@ -44,3 +49,7 @@ def _read_boolean_env(name, default):
 
 # Local execution is safe unless production explicitly opts out.
 DRY_RUN = _read_boolean_env("AUTOPOSTER_DRY_RUN", default=True)
+MEDIA_MODE = os.getenv("AUTOPOSTER_MEDIA_MODE", "auto").strip().casefold()
+
+if MEDIA_MODE not in {"auto", "photo", "video"}:
+    MEDIA_MODE = "auto"
