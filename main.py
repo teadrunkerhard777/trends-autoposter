@@ -26,6 +26,8 @@ from config import (
     NEWS_LOOKBACK_DAYS,
     PEXELS_API_KEY,
     PEXELS_VIDEO_ENABLED,
+    PIXABAY_API_KEY,
+    PIXABAY_VIDEO_ENABLED,
     POST_MODE,
     SOURCES,
     VIDEO_CANVAS_SIZE,
@@ -50,6 +52,11 @@ from generation.pexels import (
     PexelsError,
     download_stock_video,
     search_pexels_video,
+)
+from generation.pixabay import (
+    PixabayError,
+    download_pixabay_video,
+    search_pixabay_video,
 )
 from generation.video import (
     VideoRenderError,
@@ -158,12 +165,15 @@ def publish_selected_news(
     render_video=render_video_card,
     search_stock=search_pexels_video,
     download_stock=download_stock_video,
+    search_pixabay=search_pixabay_video,
+    download_pixabay=download_pixabay_video,
     render_stock=render_stock_video,
     add_history=add_to_history,
     event_settings=EVENT_DEDUP_SETTINGS,
     sources=None,
     video_slot=None,
     pexels_api_key=None,
+    pixabay_api_key=None,
 ):
     """Publish each selected item once and update history on confirmation."""
 
@@ -193,7 +203,7 @@ def publish_selected_news(
 
         if video_slot and image_url:
             temporary_image = None
-            temporary_stock = None
+            temporary_stocks = []
             temporary_video = None
             video_caption = caption
 
@@ -206,6 +216,7 @@ def publish_selected_news(
                             VIDEO_DURATION_SECONDS,
                         )
                         temporary_stock = download_stock(asset.file_url)
+                        temporary_stocks.append(temporary_stock)
                         temporary_video = render_stock(
                             temporary_stock.path,
                             format_video_card(item),
@@ -216,6 +227,30 @@ def publish_selected_news(
                         video_caption = format_stock_video_caption(item, asset)
                     except (PexelsError, VideoRenderError, OSError) as error:
                         print(f"Pexels fallback warning: {type(error).__name__}")
+
+                if (
+                    temporary_video is None
+                    and PIXABAY_VIDEO_ENABLED
+                    and pixabay_api_key
+                ):
+                    try:
+                        asset = search_pixabay(
+                            pexels_query(item),
+                            pixabay_api_key,
+                            VIDEO_DURATION_SECONDS,
+                        )
+                        temporary_stock = download_pixabay(asset.file_url)
+                        temporary_stocks.append(temporary_stock)
+                        temporary_video = render_stock(
+                            temporary_stock.path,
+                            format_video_card(item),
+                            VIDEO_STYLE,
+                            VIDEO_CANVAS_SIZE,
+                            VIDEO_DURATION_SECONDS,
+                        )
+                        video_caption = format_stock_video_caption(item, asset)
+                    except (PixabayError, VideoRenderError, OSError) as error:
+                        print(f"Pixabay fallback warning: {type(error).__name__}")
 
                 if temporary_video is None:
                     source_config = source_configs.get(item.get("source"))
@@ -248,8 +283,9 @@ def publish_selected_news(
             finally:
                 if temporary_video and temporary_video.path.exists():
                     temporary_video.path.unlink()
-                if temporary_stock and temporary_stock.path.exists():
-                    temporary_stock.path.unlink()
+                for temporary_stock in temporary_stocks:
+                    if temporary_stock.path.exists():
+                        temporary_stock.path.unlink()
                 if temporary_image and temporary_image.path.exists():
                     temporary_image.path.unlink()
 
@@ -389,6 +425,7 @@ def run():
         POST_MODE,
         video_slot=video_slot,
         pexels_api_key=PEXELS_API_KEY,
+        pixabay_api_key=PIXABAY_API_KEY,
     )
 
     if not DRY_RUN and history_changed:

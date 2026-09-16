@@ -14,7 +14,7 @@ and around the world. Local execution remains safe by default.
 - Isolated source-specific article extractors and stop markers.
 - Telegram text/photo publishing with temporary-file fallback.
 - Native eight-second MP4 cards for the separate 13:00 and 21:00 video slots.
-- Optional licensed Pexels motion backgrounds with creator attribution.
+- Licensed Pexels and Pixabay motion backgrounds with creator attribution.
 - Duplicate protection for uncertain Telegram network outcomes.
 - JSON publication history with backward-compatible fingerprints.
 - Safe `DRY_RUN=True`, a local process lock, tests, and GitHub Actions.
@@ -79,9 +79,9 @@ and Telegram presentation live in `project/`.
   > чём будут говорить завтра.
 
 - Regular posts use the original editorial image from the source. Separate
-  video runs at 13:00 and 21:00 Asia/Yekaterinburg use Pexels motion or turn
-  the editorial image into a short branded MP4 card displayed directly in
-  Telegram with the usual source caption.
+  video runs at 13:00 and 21:00 Asia/Yekaterinburg use Pexels or Pixabay
+  motion, or turn the editorial image into a short branded MP4 card displayed
+  directly in Telegram with the usual source caption.
 
 The default settings consider the last three days, require a score of at least
 eight, and select one story per run. The workflow is started through
@@ -102,9 +102,13 @@ links to the Pexels asset. Pexels footage is decorative context, never evidence
 that the depicted people or brands participated in the reported event. Without
 a key or suitable result, the existing animated editorial-image card is used.
 
+When `PIXABAY_API_KEY` is available, Pixabay is the second stock provider after
+Pexels. Only safe portrait MP4 renditions are accepted, the contributor and
+Pixabay asset are credited, and API search responses are cached for 24 hours.
+
 Production uses two external cron tasks. `autoposter.yml` forces regular
 photo/text posts and keeps the existing schedule. `video-autoposter.yml` forces
-Pexels-backed video posts at 13:00 and 21:00 Asia/Yekaterinburg. Both workflows
+stock-backed video posts at 13:00 and 21:00 Asia/Yekaterinburg. Both workflows
 share one concurrency group and one confirmed-publication history.
 
 To build a real channel, follow [PROJECT_SETUP.md](PROJECT_SETUP.md). For the

@@ -110,9 +110,10 @@ def format_stock_video_caption(news_item, asset):
     creator = escape(asset.creator_name)
     creator_url = escape(asset.creator_url, quote=True)
     page_url = escape(asset.page_url, quote=True)
+    provider = escape(getattr(asset, "provider_name", "Pexels"))
     credit = (
         f'🎬 Видео: <a href="{creator_url}">{creator}</a> / '
-        f'<a href="{page_url}">Pexels</a>'
+        f'<a href="{page_url}">{provider}</a>'
     )
     return f"{caption}\n\n{credit}"
 

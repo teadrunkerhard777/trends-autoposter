@@ -12,6 +12,7 @@ from project.settings import (
     NEWS_LOOKBACK_DAYS,
     POST_MODE,
     PEXELS_VIDEO_ENABLED,
+    PIXABAY_VIDEO_ENABLED,
     VIDEO_CANVAS_SIZE,
     VIDEO_DURATION_SECONDS,
     VIDEO_PUBLICATION_HOURS,
@@ -51,6 +52,7 @@ def _read_boolean_env(name, default):
 # Local execution is safe unless production explicitly opts out.
 DRY_RUN = _read_boolean_env("AUTOPOSTER_DRY_RUN", default=True)
 PEXELS_API_KEY = os.getenv("PEXELS_API_KEY", "").strip()
+PIXABAY_API_KEY = os.getenv("PIXABAY_API_KEY", "").strip()
 MEDIA_MODE = os.getenv("AUTOPOSTER_MEDIA_MODE", "auto").strip().casefold()
 
 if MEDIA_MODE not in {"auto", "photo", "video"}:

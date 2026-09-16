@@ -288,9 +288,10 @@ channel, and grant only the permissions needed to post. Put the token and chat
 ID in the local `.env`; never commit or paste them into source code.
 
 For GitHub Actions, create `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` repository
-secrets. Projects using optional Pexels video backgrounds also create
-`PEXELS_API_KEY`; the publisher continues with its image-video fallback when
-that secret is absent. Review `.github/workflows/autoposter.yml`: it runs tests,
+secrets. Projects using optional stock-video backgrounds also create
+`PEXELS_API_KEY` and `PIXABAY_API_KEY`; the publisher continues with its
+image-video fallback when either secret is absent. Review
+`.github/workflows/autoposter.yml`: it runs tests,
 runs the autoposter, and commits only `storage/published.json` after confirmed
 publication. Keep `workflow_dispatch`, `cancel-in-progress: false`, and
 history-only staging.
