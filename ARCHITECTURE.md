@@ -42,6 +42,10 @@ enabled sources
 -> confirmed-success history update
 ```
 
+Two externally dispatched workflows enter this same pipeline. The regular
+workflow forces photo mode; the separate video workflow forces video mode.
+They share one GitHub concurrency group so history remains serialized.
+
 Article loading precedes event dedup because the event fingerprint uses article
 facts. A preloaded local/static item skips the HTTP request.
 

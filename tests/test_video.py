@@ -11,11 +11,11 @@ ZONE = ZoneInfo("Asia/Yekaterinburg")
 
 
 def test_auto_video_slots_are_daytime_and_evening_only():
-    assert resolve_video_slot("auto", [], datetime(2026, 9, 16, 15, tzinfo=ZONE)) == (
-        "2026-09-16-15"
+    assert resolve_video_slot("auto", [], datetime(2026, 9, 16, 13, tzinfo=ZONE)) == (
+        "2026-09-16-13"
     )
-    assert resolve_video_slot("auto", [], datetime(2026, 9, 16, 19, tzinfo=ZONE)) == (
-        "2026-09-16-19"
+    assert resolve_video_slot("auto", [], datetime(2026, 9, 16, 21, tzinfo=ZONE)) == (
+        "2026-09-16-21"
     )
     assert resolve_video_slot("auto", [], datetime(2026, 9, 16, 11, tzinfo=ZONE)) is None
 
@@ -23,9 +23,9 @@ def test_auto_video_slots_are_daytime_and_evening_only():
 def test_used_video_slot_is_not_selected_again():
     history = [{
         "publication_media": "video",
-        "video_slot": "2026-09-16-15",
+        "video_slot": "2026-09-16-13",
     }]
-    now = datetime(2026, 9, 16, 15, 30, tzinfo=ZONE)
+    now = datetime(2026, 9, 16, 13, 30, tzinfo=ZONE)
 
     assert resolve_video_slot("auto", history, now) is None
 

@@ -1,19 +1,19 @@
-name: Trends and Brands Autoposter
+name: Trends and Brands Video Autoposter
 
 on:
-  # cron-job.org starts this workflow through the GitHub dispatch API.
+  # A separate cron-job.org task starts the two daily video runs.
   workflow_dispatch:
 
 permissions:
   contents: write
 
-# A later run waits instead of interrupting a publisher with unknown state.
+# Video and regular publishers share one lock and publication history.
 concurrency:
   group: trends-brands-autoposter
   cancel-in-progress: false
 
 jobs:
-  publish:
+  publish-video:
     runs-on: ubuntu-latest
 
     steps:
@@ -32,12 +32,13 @@ jobs:
       - name: Run tests
         run: python -m pytest
 
-      - name: Run autoposter
+      - name: Run video autoposter
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
           AUTOPOSTER_DRY_RUN: "false"
-          AUTOPOSTER_MEDIA_MODE: "photo"
+          AUTOPOSTER_MEDIA_MODE: "video"
         run: python main.py
 
       - name: Commit publication history

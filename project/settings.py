@@ -12,10 +12,9 @@ MAX_NEWS_PER_RUN = 1
 MIN_PUBLICATION_SCORE = 8
 POST_MODE = "single"
 
-# The existing scheduler runs at 11:00, 15:00, 19:00 and 23:00 local time.
-# Turn the two middle runs into native Telegram video posts.
+# A separate external cron runs native video posts between regular slots.
 VIDEO_TIMEZONE = "Asia/Yekaterinburg"
-VIDEO_PUBLICATION_HOURS = (15, 19)
+VIDEO_PUBLICATION_HOURS = (13, 21)
 VIDEO_DURATION_SECONDS = 8
 VIDEO_CANVAS_SIZE = (1080, 1350)
 PEXELS_VIDEO_ENABLED = True
