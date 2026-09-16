@@ -78,6 +78,61 @@ def render_video_card(image_path, copy, style, size, duration_seconds):
             video_path.unlink()
 
 
+def render_stock_video(video_source_path, copy, style, size, duration_seconds):
+    """Crop a stock clip and add a readable project-supplied title card."""
+    overlay_path = None
+    video_path = None
+    completed = False
+
+    try:
+        overlay = _build_overlay(copy, style, size)
+        with tempfile.NamedTemporaryFile(
+            prefix="autoposter-video-overlay-", suffix=".png", delete=False
+        ) as overlay_file:
+            overlay_path = Path(overlay_file.name)
+            overlay.save(overlay_file, format="PNG", optimize=True)
+
+        with tempfile.NamedTemporaryFile(
+            prefix="autoposter-video-", suffix=".mp4", delete=False
+        ) as video_file:
+            video_path = Path(video_file.name)
+
+        width, height = size
+        filter_graph = (
+            f"[0:v]scale={width}:{height}:force_original_aspect_ratio=increase,"
+            f"crop={width}:{height},setsar=1,fps=25[base];"
+            "[1:v]format=rgba[card];"
+            "[base][card]overlay=0:0:shortest=1,"
+            "fade=t=in:st=0:d=0.25,"
+            f"fade=t=out:st={max(0, duration_seconds - 0.5)}:d=0.5[out]"
+        )
+        command = [
+            imageio_ffmpeg.get_ffmpeg_exe(), "-y",
+            "-i", str(video_source_path), "-loop", "1", "-i", str(overlay_path),
+            "-filter_complex", filter_graph, "-map", "[out]",
+            "-t", str(duration_seconds), "-an", "-c:v", "libx264",
+            "-preset", "medium", "-crf", "24", "-pix_fmt", "yuv420p",
+            "-movflags", "+faststart", str(video_path),
+        ]
+        result = subprocess.run(
+            command, capture_output=True, text=True, timeout=90, check=False
+        )
+        if result.returncode != 0 or not video_path.exists():
+            raise VideoRenderError("ffmpeg could not render stock video")
+        size_bytes = video_path.stat().st_size
+        if size_bytes == 0:
+            raise VideoRenderError("ffmpeg returned an empty stock video")
+        completed = True
+        return TemporaryVideo(video_path, size_bytes)
+    except (OSError, ValueError, subprocess.SubprocessError) as error:
+        raise VideoRenderError(type(error).__name__) from error
+    finally:
+        if overlay_path and overlay_path.exists():
+            overlay_path.unlink()
+        if video_path and video_path.exists() and not completed:
+            video_path.unlink()
+
+
 def _build_cover(source, copy, style, size):
     width, height = size
     foreground = style["foreground"]
@@ -114,6 +169,38 @@ def _build_cover(source, copy, style, size):
         (72, height - 78), copy.get("tagline", ""), font=small_font, fill=muted
     )
     return Image.alpha_composite(image.convert("RGBA"), overlay).convert("RGB")
+
+
+def _build_overlay(copy, style, size):
+    width, height = size
+    overlay = Image.new("RGBA", size, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(overlay)
+    draw.rectangle((0, height * 0.43, width, height), fill=(9, 12, 17, 190))
+    draw.rectangle((72, 92, 242, 106), fill=style["accent"])
+
+    brand_font = _font(34, bold=True)
+    eyebrow_font = _font(34, bold=True)
+    title_font = _font(70, bold=True)
+    small_font = _font(30)
+    draw.text((72, 42), copy["brand"], font=brand_font, fill=style["foreground"])
+    draw.text(
+        (72, int(height * 0.50)),
+        copy["eyebrow"],
+        font=eyebrow_font,
+        fill=style["accent"],
+    )
+    title_lines = _wrap_text(draw, copy["title"], title_font, width - 144, 5)
+    y = int(height * 0.57)
+    for line in title_lines:
+        draw.text((72, y), line, font=title_font, fill=style["foreground"])
+        y += 84
+    draw.text(
+        (72, height - 78),
+        copy.get("tagline", ""),
+        font=small_font,
+        fill=style["muted"],
+    )
+    return overlay
 
 
 def _font(size, bold=False):

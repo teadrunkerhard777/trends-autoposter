@@ -12,6 +12,7 @@ from generation.text import fit_text_to_html_limit
 
 MESSAGE_LIMIT = 4000
 PHOTO_CAPTION_LIMIT = 1000
+STOCK_VIDEO_CAPTION_LIMIT = 760
 EXCERPT_LIMIT = 560
 
 PUNCHLINES = {
@@ -101,6 +102,19 @@ def format_video_card(news_item):
         "brand": CHANNEL_TITLE.upper(),
         "tagline": "Коротко о главном",
     }
+
+
+def format_stock_video_caption(news_item, asset):
+    """Add API attribution without crowding the Telegram video caption."""
+    caption = _format(news_item, STOCK_VIDEO_CAPTION_LIMIT)
+    creator = escape(asset.creator_name)
+    creator_url = escape(asset.creator_url, quote=True)
+    page_url = escape(asset.page_url, quote=True)
+    credit = (
+        f'🎬 Видео: <a href="{creator_url}">{creator}</a> / '
+        f'<a href="{page_url}">Pexels</a>'
+    )
+    return f"{caption}\n\n{credit}"
 
 
 def _format(news_item, limit):

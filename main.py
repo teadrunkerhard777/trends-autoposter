@@ -24,6 +24,8 @@ from config import (
     MEDIA_MODE,
     MIN_PUBLICATION_SCORE,
     NEWS_LOOKBACK_DAYS,
+    PEXELS_API_KEY,
+    PEXELS_VIDEO_ENABLED,
     POST_MODE,
     SOURCES,
     VIDEO_CANVAS_SIZE,
@@ -44,10 +46,25 @@ from processing.filters import (
     sort_by_score,
 )
 from project.filters import is_publishable, is_relevant
-from generation.video import VideoRenderError, render_video_card
-from project.formatter import format_photo_caption, format_post, format_video_card
+from generation.pexels import (
+    PexelsError,
+    download_stock_video,
+    search_pexels_video,
+)
+from generation.video import (
+    VideoRenderError,
+    render_stock_video,
+    render_video_card,
+)
+from project.formatter import (
+    format_photo_caption,
+    format_post,
+    format_stock_video_caption,
+    format_video_card,
+)
 from project.scoring import calculate_score
 from project.sources import SOURCE_EXTRACTORS, SOURCE_STOP_MARKERS
+from project.video import pexels_query
 from publishing.telegram import (
     ImageDownloadError,
     download_image_temp,
@@ -138,10 +155,14 @@ def publish_selected_news(
     send_video=send_telegram_video,
     download_image=download_image_temp,
     render_video=render_video_card,
+    search_stock=search_pexels_video,
+    download_stock=download_stock_video,
+    render_stock=render_stock_video,
     add_history=add_to_history,
     event_settings=EVENT_DEDUP_SETTINGS,
     sources=None,
     video_slot=None,
+    pexels_api_key=None,
 ):
     """Publish each selected item once and update history on confirmation."""
 
@@ -171,26 +192,48 @@ def publish_selected_news(
 
         if video_slot and image_url:
             temporary_image = None
+            temporary_stock = None
             temporary_video = None
+            video_caption = caption
 
             try:
-                source_config = source_configs.get(item.get("source"))
-                temporary_image = download_image(
-                    image_url,
-                    source_config=source_config,
-                )
-                temporary_video = render_video(
-                    temporary_image.path,
-                    format_video_card(item),
-                    VIDEO_STYLE,
-                    VIDEO_CANVAS_SIZE,
-                    VIDEO_DURATION_SECONDS,
-                )
+                if PEXELS_VIDEO_ENABLED and pexels_api_key:
+                    try:
+                        asset = search_stock(
+                            pexels_query(item),
+                            pexels_api_key,
+                            VIDEO_DURATION_SECONDS,
+                        )
+                        temporary_stock = download_stock(asset.file_url)
+                        temporary_video = render_stock(
+                            temporary_stock.path,
+                            format_video_card(item),
+                            VIDEO_STYLE,
+                            VIDEO_CANVAS_SIZE,
+                            VIDEO_DURATION_SECONDS,
+                        )
+                        video_caption = format_stock_video_caption(item, asset)
+                    except (PexelsError, VideoRenderError, OSError) as error:
+                        print(f"Pexels fallback warning: {type(error).__name__}")
+
+                if temporary_video is None:
+                    source_config = source_configs.get(item.get("source"))
+                    temporary_image = download_image(
+                        image_url,
+                        source_config=source_config,
+                    )
+                    temporary_video = render_video(
+                        temporary_image.path,
+                        format_video_card(item),
+                        VIDEO_STYLE,
+                        VIDEO_CANVAS_SIZE,
+                        VIDEO_DURATION_SECONDS,
+                    )
 
                 with temporary_video.path.open("rb") as video_file:
                     video_result = send_video(
                         video_file,
-                        caption,
+                        video_caption,
                         filename=temporary_video.path.name,
                     )
 
@@ -204,6 +247,8 @@ def publish_selected_news(
             finally:
                 if temporary_video and temporary_video.path.exists():
                     temporary_video.path.unlink()
+                if temporary_stock and temporary_stock.path.exists():
+                    temporary_stock.path.unlink()
                 if temporary_image and temporary_image.path.exists():
                     temporary_image.path.unlink()
 
@@ -337,6 +382,7 @@ def run():
         DRY_RUN,
         POST_MODE,
         video_slot=video_slot,
+        pexels_api_key=PEXELS_API_KEY,
     )
 
     if not DRY_RUN and history_changed:

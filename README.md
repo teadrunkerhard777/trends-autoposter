@@ -14,6 +14,7 @@ and around the world. Local execution remains safe by default.
 - Isolated source-specific article extractors and stop markers.
 - Telegram text/photo publishing with temporary-file fallback.
 - Native eight-second MP4 cards for the 15:00 and 19:00 publication slots.
+- Optional licensed Pexels motion backgrounds with creator attribution.
 - Duplicate protection for uncertain Telegram network outcomes.
 - JSON publication history with backward-compatible fingerprints.
 - Safe `DRY_RUN=True`, a local process lock, tests, and GitHub Actions.
@@ -92,6 +93,13 @@ diagnostic run. A confirmed video stores its dated slot in publication history,
 so restarting the same slot cannot publish a second clip. Rendering failure
 falls back to the existing photo/text flow; uncertain Telegram delivery does
 not fall back and therefore cannot create a duplicate.
+
+When `PEXELS_API_KEY` is available, a video slot searches the official Pexels
+API for neutral portrait B-roll mapped to the story category. The clip is
+cropped, trimmed, and branded locally; its caption credits the creator and
+links to the Pexels asset. Pexels footage is decorative context, never evidence
+that the depicted people or brands participated in the reported event. Without
+a key or suitable result, the existing animated editorial-image card is used.
 
 To build a real channel, follow [PROJECT_SETUP.md](PROJECT_SETUP.md). For the
 design and LiveCrime mapping, see [ARCHITECTURE.md](ARCHITECTURE.md).

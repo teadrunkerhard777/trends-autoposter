@@ -37,7 +37,7 @@ enabled sources
 -> history or DRY_RUN bypass
 -> MAX_NEWS_PER_RUN
 -> project formatter
--> optional branded MP4 card for the 15:00/19:00 slots
+-> optional credited Pexels B-roll or branded image MP4 fallback
 -> Telegram publisher or DRY_RUN output
 -> confirmed-success history update
 ```

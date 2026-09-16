@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 import requests
 
+from generation.pexels import PexelsVideo, TemporaryStockVideo
 from generation.video import TemporaryVideo
 from main import publish_selected_news
 from publishing.telegram import (
@@ -121,6 +122,46 @@ def test_video_slot_sends_native_video_and_records_slot(tmp_path):
     assert history[0]["video_slot"] == "2026-01-01-15"
     assert image_path.exists() is False
     assert video_path.exists() is False
+
+
+def test_video_slot_prefers_credited_pexels_background(tmp_path):
+    stock_path = tmp_path / "stock.mp4"
+    rendered_path = tmp_path / "rendered.mp4"
+    stock_path.write_bytes(b"stock")
+    rendered_path.write_bytes(b"rendered")
+    asset = PexelsVideo(
+        file_url="https://video.test/portrait.mp4",
+        page_url="https://www.pexels.com/video/123/",
+        creator_name="Video Author",
+        creator_url="https://www.pexels.com/@author",
+        duration=12,
+    )
+    sent = []
+
+    changed = publish_selected_news(
+        [news("https://img.test/photo.jpg")],
+        [],
+        False,
+        "single",
+        send_post=fail_if_called,
+        send_photo=fail_if_called,
+        send_video=lambda video, caption, **kwargs: (
+            sent.append((video.read(), caption)) or TelegramSendResult(True)
+        ),
+        download_image=fail_if_called,
+        search_stock=lambda query, key, duration: asset,
+        download_stock=lambda url: TemporaryStockVideo(stock_path, 5),
+        render_stock=lambda *args: TemporaryVideo(rendered_path, 8),
+        video_slot="2026-01-01-19",
+        pexels_api_key="secret-key",
+    )
+
+    assert changed is True
+    assert sent[0][0] == b"rendered"
+    assert "Video Author" in sent[0][1]
+    assert "Pexels" in sent[0][1]
+    assert stock_path.exists() is False
+    assert rendered_path.exists() is False
 
 
 def test_confirmed_remote_fetch_error_uses_temporary_file(tmp_path):
