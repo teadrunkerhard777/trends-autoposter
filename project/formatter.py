@@ -93,20 +93,20 @@ def format_video_card(news_item):
     publisher = news_item.get("publisher") or _display_source(
         news_item.get("source", "")
     )
-    title = _display_title(news_item.get("title", "Без заголовка"), publisher)
     category = news_item.get("event_category")
+    title = _display_title(news_item.get("title", "Без заголовка"), publisher)
+    title = _short_video_title(title, category)
     topic, _ = CATEGORY_FOOTERS.get(category, ("главное", "#Бренды"))
     return {
         "eyebrow": topic.upper(),
-        "title": title[:180],
+        "title": title,
         "brand": CHANNEL_TITLE.upper(),
-        "tagline": "Коротко о главном",
     }
 
 
 def format_stock_video_caption(news_item, asset):
     """Add API attribution without crowding the Telegram video caption."""
-    caption = _format(news_item, STOCK_VIDEO_CAPTION_LIMIT)
+    caption = _format(news_item, STOCK_VIDEO_CAPTION_LIMIT, include_header=False)
     creator = escape(asset.creator_name)
     creator_url = escape(asset.creator_url, quote=True)
     page_url = escape(asset.page_url, quote=True)
@@ -118,7 +118,7 @@ def format_stock_video_caption(news_item, asset):
     return f"{caption}\n\n{credit}"
 
 
-def _format(news_item, limit):
+def _format(news_item, limit, include_header=True):
     source_name = news_item.get("source", "Неизвестный источник")
     publisher_name = news_item.get("publisher") or _display_source(source_name)
     raw_title = _display_title(
@@ -138,7 +138,12 @@ def _format(news_item, limit):
         f"{hashtag}"
     )
     header = f"<b>{title}</b>"
-    fixed_length = len(header) + len(punchline) + len(footer) + 8
+    fixed_length = (
+        (len(header) if include_header else 0)
+        + len(punchline)
+        + len(footer)
+        + 8
+    )
     body = news_item.get("article_text") or news_item.get("description", "")
     body = _short_excerpt(body, raw_title)
     body = fit_text_to_html_limit(
@@ -146,13 +151,33 @@ def _format(news_item, limit):
         min(EXCERPT_LIMIT, max(0, limit - fixed_length)),
     )
 
-    parts = [header]
+    parts = [header] if include_header else []
     if body:
         parts.append(escape(body))
     if punchline:
         parts.append(escape(punchline))
     parts.append(footer)
     return "\n\n".join(parts)
+
+
+def _short_video_title(title, category):
+    """Keep overlay copy punchy and avoid repeating a full article headline."""
+    normalized = " ".join(str(title).split())
+    if category == "collaboration":
+        match = re.split(
+            r"\s+(?:запустил(?:а|и)?|представил(?:а|и)?|выпустил(?:а|и)?|"
+            r"объявил(?:а|и)?)\s+",
+            normalized,
+            maxsplit=1,
+            flags=re.IGNORECASE,
+        )
+        if len(match) == 2 and len(match[0]) >= 8:
+            normalized = match[0].replace(" и ", " × ", 1)
+
+    if len(normalized) <= 88:
+        return normalized
+    shortened = normalized[:85].rsplit(" ", 1)[0].rstrip(" ,:;—-")
+    return f"{shortened}…"
 
 
 def _select_punchline(news_item, category):

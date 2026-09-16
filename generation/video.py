@@ -134,10 +134,6 @@ def render_stock_video(video_source_path, copy, style, size, duration_seconds):
 
 
 def _build_cover(source, copy, style, size):
-    width, height = size
-    foreground = style["foreground"]
-    muted = style["muted"]
-    accent = style["accent"]
     background = style["background"]
 
     rgb_source = ImageOps.exif_transpose(source).convert("RGB")
@@ -147,59 +143,49 @@ def _build_cover(source, copy, style, size):
 
     image = Image.new("RGB", size, background)
     image.paste(backdrop)
-    overlay = Image.new("RGBA", size, (0, 0, 0, 0))
-    draw = ImageDraw.Draw(overlay)
-    draw.rectangle((0, height * 0.42, width, height), fill=(9, 12, 17, 205))
-    draw.rectangle((72, 92, 242, 106), fill=accent)
-
-    brand_font = _font(34, bold=True)
-    eyebrow_font = _font(34, bold=True)
-    title_font = _font(70, bold=True)
-    small_font = _font(30)
-    draw.text((72, 42), copy["brand"], font=brand_font, fill=foreground)
-    draw.text((72, int(height * 0.49)), copy["eyebrow"], font=eyebrow_font, fill=accent)
-
-    title_lines = _wrap_text(draw, copy["title"], title_font, width - 144, 5)
-    y = int(height * 0.56)
-    for line in title_lines:
-        draw.text((72, y), line, font=title_font, fill=foreground)
-        y += 84
-
-    draw.text(
-        (72, height - 78), copy.get("tagline", ""), font=small_font, fill=muted
-    )
+    overlay = _build_overlay(copy, style, size)
     return Image.alpha_composite(image.convert("RGBA"), overlay).convert("RGB")
 
 
 def _build_overlay(copy, style, size):
     width, height = size
+    scale = width / 1080
+    margin = max(20, int(72 * scale))
     overlay = Image.new("RGBA", size, (0, 0, 0, 0))
     draw = ImageDraw.Draw(overlay)
-    draw.rectangle((0, height * 0.43, width, height), fill=(9, 12, 17, 190))
-    draw.rectangle((72, 92, 242, 106), fill=style["accent"])
+    draw.rectangle((0, int(height * 0.56), width, height), fill=(9, 12, 17, 205))
+    draw.rectangle(
+        (margin, int(92 * scale), margin + int(170 * scale), int(106 * scale)),
+        fill=style["accent"],
+    )
 
-    brand_font = _font(34, bold=True)
-    eyebrow_font = _font(34, bold=True)
-    title_font = _font(70, bold=True)
-    small_font = _font(30)
-    draw.text((72, 42), copy["brand"], font=brand_font, fill=style["foreground"])
+    brand_font = _font(max(14, int(30 * scale)), bold=True)
+    eyebrow_font = _font(max(14, int(30 * scale)), bold=True)
+    title_font = _font(max(20, int(62 * scale)), bold=True)
     draw.text(
-        (72, int(height * 0.50)),
+        (margin, int(42 * scale)),
+        copy["brand"],
+        font=brand_font,
+        fill=style["foreground"],
+    )
+    draw.text(
+        (margin, int(height * 0.61)),
         copy["eyebrow"],
         font=eyebrow_font,
         fill=style["accent"],
     )
-    title_lines = _wrap_text(draw, copy["title"], title_font, width - 144, 5)
-    y = int(height * 0.57)
-    for line in title_lines:
-        draw.text((72, y), line, font=title_font, fill=style["foreground"])
-        y += 84
-    draw.text(
-        (72, height - 78),
-        copy.get("tagline", ""),
-        font=small_font,
-        fill=style["muted"],
+    title_lines = _wrap_text(
+        draw,
+        copy["title"],
+        title_font,
+        width - (margin * 2),
+        3,
     )
+    y = int(height * 0.68)
+    line_height = max(25, int(76 * scale))
+    for line in title_lines:
+        draw.text((margin, y), line, font=title_font, fill=style["foreground"])
+        y += line_height
     return overlay
 
 

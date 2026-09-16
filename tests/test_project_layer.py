@@ -4,7 +4,13 @@ from bs4 import BeautifulSoup
 
 from processing.filters import add_scores, filter_by_minimum_score, filter_relevant
 from project.filters import is_publishable, is_relevant
-from project.formatter import _select_punchline, format_photo_caption, format_post
+from project.formatter import (
+    _select_punchline,
+    format_photo_caption,
+    format_post,
+    format_stock_video_caption,
+    format_video_card,
+)
 from project.scoring import calculate_score
 from project.settings import MIN_PUBLICATION_SCORE
 from project.sources import (
@@ -12,6 +18,7 @@ from project.sources import (
     extract_new_retail_article,
     extract_retail_article,
 )
+from project.video import pexels_query
 
 
 def item(title, description="", source="Postium Коллаборации"):
@@ -214,6 +221,43 @@ def test_photo_caption_stays_inside_safe_limit():
     assert is_relevant(news) is True
 
     assert len(format_photo_caption(news)) <= 1000
+
+
+def test_food_collaboration_gets_relevant_video_query_and_short_overlay():
+    news = item(
+        "«Додо Пицца» и Lay’s Maxx запустили коллаборацию с «Чипси-пиццей»",
+        "Пиццу подают с пачкой чипсов.",
+    )
+    news["event_category"] = "collaboration"
+
+    card = format_video_card(news)
+
+    assert "pizza" in pexels_query(news) or "chips" in pexels_query(news)
+    assert card["title"] == "«Додо Пицца» × Lay’s Maxx"
+    assert "запустили" not in card["title"]
+    assert len(card["title"]) < 40
+
+
+def test_stock_video_caption_does_not_repeat_overlay_headline():
+    class Asset:
+        creator_name = "Author"
+        creator_url = "https://example.test/author"
+        page_url = "https://example.test/video"
+        provider_name = "Stock"
+
+    news = item(
+        "«Додо Пицца» и Lay’s Maxx запустили коллаборацию с «Чипси-пиццей»",
+        "Бренды представили пиццу с лимитированной пачкой чипсов.",
+    )
+    news["article_text"] = news["description"]
+    news["event_category"] = "collaboration"
+
+    caption = format_stock_video_caption(news, Asset())
+
+    assert not caption.startswith("<b>")
+    assert caption.count("запустили коллаборацию") == 0
+    assert "Бренды представили пиццу" in caption
+    assert "Author" in caption
 
 
 def test_new_retail_extractor_keeps_only_article_body():
