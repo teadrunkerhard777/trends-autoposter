@@ -4,6 +4,7 @@ from storage.history import (
     add_to_history,
     has_video_slot,
     is_published,
+    is_published_as_video,
     load_history,
     save_history,
 )
@@ -50,3 +51,12 @@ def test_confirmed_video_slot_is_recorded_and_detected():
 
     assert has_video_slot(history, "2026-01-01-15") is True
     assert has_video_slot(history, "2026-01-01-19") is False
+
+
+def test_video_dedup_ignores_photo_history_but_blocks_video_history():
+    item = news()
+    photo_entry = {"url": item["url"], "publication_media": "photo"}
+    video_entry = {"url": item["url"], "publication_media": "video"}
+
+    assert is_published_as_video(item, [photo_entry]) is False
+    assert is_published_as_video(item, [video_entry]) is True

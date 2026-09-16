@@ -76,6 +76,7 @@ from storage.history import (
     add_to_history,
     has_video_slot,
     is_published,
+    is_published_as_video,
     load_history,
     save_history,
 )
@@ -355,6 +356,11 @@ def run():
 
     if DRY_RUN:
         new_news = unique_news.copy()
+    elif MEDIA_MODE == "video":
+        new_news = [
+            item for item in unique_news
+            if not is_published_as_video(item, history, EVENT_DEDUP_SETTINGS)
+        ]
     else:
         new_news = [
             item for item in unique_news

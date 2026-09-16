@@ -44,6 +44,15 @@ def is_published(news_item, history, event_settings=None):
     return False
 
 
+def is_published_as_video(news_item, history, event_settings=None):
+    """Deduplicate only against confirmed video posts for the video feed."""
+    video_history = [
+        entry for entry in history
+        if entry.get("publication_media") == "video"
+    ]
+    return is_published(news_item, video_history, event_settings)
+
+
 def add_to_history(news_item, history, event_settings=None):
     published_at = news_item.get("published_at")
     entry = {

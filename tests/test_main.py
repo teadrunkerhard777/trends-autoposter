@@ -100,3 +100,27 @@ def test_run_applies_diversity_after_event_dedup(monkeypatch):
         "settings": settings,
     }
     assert selected == [second]
+
+
+def test_run_video_mode_ignores_regular_post_history(monkeypatch):
+    item = {"title": "Video story", "url": "https://example.test/video"}
+    published = [{"url": item["url"], "publication_media": "photo"}]
+
+    monkeypatch.setattr(main, "configure_ssl", lambda: None)
+    monkeypatch.setattr(main, "collect_enabled_news", lambda: [item])
+    monkeypatch.setattr(main, "filter_by_date", lambda items, days: items)
+    monkeypatch.setattr(main, "filter_relevant", lambda items, rule: items)
+    monkeypatch.setattr(main, "add_scores", lambda items, scorer: None)
+    monkeypatch.setattr(main, "filter_by_minimum_score", lambda items, minimum: items)
+    monkeypatch.setattr(main, "sort_by_score", lambda items: items)
+    monkeypatch.setattr(main, "load_article_data", lambda items: None)
+    monkeypatch.setattr(main, "is_publishable", lambda candidate: True)
+    monkeypatch.setattr(main, "remove_duplicates", lambda items, *args, **kwargs: items)
+    monkeypatch.setattr(main, "load_history", lambda: published)
+    monkeypatch.setattr(main, "resolve_video_slot", lambda *args: "2026-09-16-13")
+    monkeypatch.setattr(main, "select_diverse", lambda items, *args: items)
+    monkeypatch.setattr(main, "publish_selected_news", lambda *args, **kwargs: False)
+    monkeypatch.setattr(main, "DRY_RUN", False)
+    monkeypatch.setattr(main, "MEDIA_MODE", "video")
+
+    assert main.run() == [item]
