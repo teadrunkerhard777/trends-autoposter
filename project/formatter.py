@@ -1,6 +1,5 @@
-"""Short Telegram presentation for viral stories about famous brands."""
+"""Compact Telegram presentation for technology and science news."""
 
-import hashlib
 import re
 from datetime import datetime
 from html import escape
@@ -15,61 +14,13 @@ PHOTO_CAPTION_LIMIT = 1000
 STOCK_VIDEO_CAPTION_LIMIT = 760
 EXCERPT_LIMIT = 560
 
-PUNCHLINES = {
-    "collaboration": (
-        "Вот это союз.",
-        "Неожиданная пара.",
-        "Коллаб, который мы заслужили.",
-        "Хотим или листаем дальше?",
-        "Кто бы мог подумать.",
-        "",
-        "",
-    ),
-    "product_launch": (
-        "Уже в списке желаний.",
-        "Проверим в деле.",
-        "Очередь занимать?",
-        "Нам это надо?",
-        "Выглядит убедительно.",
-        "",
-        "",
-    ),
-    "campaign": (
-        "Заметили. И запомнили.",
-        "Маркетологи не зря старались.",
-        "Сработало?",
-        "Мимо такого не пройти.",
-        "Смело.",
-        "",
-        "",
-    ),
-    "rebrand": (
-        "Старый логотип вышел из чата.",
-        "Привыкнем?",
-        "Было лучше?",
-        "Новый образ принят.",
-        "Смело.",
-        "",
-        "",
-    ),
-    "viral_event": (
-        "Интернет уже всё решил.",
-        "Ну конечно.",
-        "Сценаристы отдыхают.",
-        "Этого никто не заказывал.",
-        "Дальше — больше.",
-        "Совпадение? Не думаем.",
-        "",
-        "",
-    ),
-}
-
 CATEGORY_FOOTERS = {
-    "collaboration": ("коллаборации", "#Коллаборации"),
-    "product_launch": ("новинки", "#Новинки"),
-    "campaign": ("реклама", "#Реклама"),
-    "rebrand": ("ребрендинг", "#Ребрендинг"),
-    "viral_event": ("инфоповоды", "#Инфоповоды"),
+    "gadgets": ("гаджеты", "#Гаджеты"),
+    "ai": ("искусственный интеллект", "#ИИ"),
+    "science": ("наука", "#Наука"),
+    "space": ("космос", "#Космос"),
+    "cybersecurity": ("кибербезопасность", "#Кибербезопасность"),
+    "software": ("технологии", "#Технологии"),
 }
 
 MONTHS = (
@@ -129,8 +80,7 @@ def _format(news_item, limit, include_header=True):
     url = escape(news_item.get("url", ""), quote=True)
     date = _format_date(news_item.get("published_at"))
     category = news_item.get("event_category")
-    punchline = _select_punchline(news_item, category)
-    topic, hashtag = CATEGORY_FOOTERS.get(category, ("бренды", "#Бренды"))
+    topic, hashtag = CATEGORY_FOOTERS.get(category, ("технологии", "#Технологии"))
     footer = (
         f"📅 {date}\n"
         f"📰 <b>{CHANNEL_TITLE}:</b> {topic}\n\n"
@@ -140,7 +90,6 @@ def _format(news_item, limit, include_header=True):
     header = f"<b>{title}</b>"
     fixed_length = (
         (len(header) if include_header else 0)
-        + len(punchline)
         + len(footer)
         + 8
     )
@@ -154,8 +103,6 @@ def _format(news_item, limit, include_header=True):
     parts = [header] if include_header else []
     if body:
         parts.append(escape(body))
-    if punchline:
-        parts.append(escape(punchline))
     parts.append(footer)
     return "\n\n".join(parts)
 
@@ -163,30 +110,10 @@ def _format(news_item, limit, include_header=True):
 def _short_video_title(title, category):
     """Keep overlay copy punchy and avoid repeating a full article headline."""
     normalized = " ".join(str(title).split())
-    if category == "collaboration":
-        match = re.split(
-            r"\s+(?:запустил(?:а|и)?|представил(?:а|и)?|выпустил(?:а|и)?|"
-            r"объявил(?:а|и)?)\s+",
-            normalized,
-            maxsplit=1,
-            flags=re.IGNORECASE,
-        )
-        if len(match) == 2 and len(match[0]) >= 8:
-            normalized = match[0].replace(" и ", " × ", 1)
-
     if len(normalized) <= 88:
         return normalized
     shortened = normalized[:85].rsplit(" ", 1)[0].rstrip(" ,:;—-")
     return f"{shortened}…"
-
-
-def _select_punchline(news_item, category):
-    """Choose a stable varied reaction, including intentionally silent posts."""
-
-    variants = PUNCHLINES.get(category, ("",))
-    identity = f"{news_item.get('url', '')}\n{news_item.get('title', '')}"
-    digest = hashlib.sha256(identity.encode("utf-8")).digest()
-    return variants[int.from_bytes(digest[:4], "big") % len(variants)]
 
 
 def _short_excerpt(text, title):
@@ -209,7 +136,7 @@ def _format_date(value):
 
 
 def _display_source(source):
-    return source.removesuffix(" — Google News")
+    return source
 
 
 def _display_title(title, source):

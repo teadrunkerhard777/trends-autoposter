@@ -1,4 +1,4 @@
-name: Trends and Brands Video Autoposter
+name: Nu i Gadgets Video Autoposter
 
 on:
   # A separate cron-job.org task starts the two daily video runs.
@@ -9,7 +9,7 @@ permissions:
 
 # Video and regular publishers share one lock and publication history.
 concurrency:
-  group: trends-brands-autoposter
+  group: nu-i-gadgets-autoposter
   cancel-in-progress: false
 
 jobs:

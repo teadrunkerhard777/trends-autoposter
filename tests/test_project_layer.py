@@ -1,283 +1,111 @@
 from datetime import datetime, timezone
 
-from bs4 import BeautifulSoup
-
 from processing.filters import add_scores, filter_by_minimum_score, filter_relevant
 from project.filters import is_publishable, is_relevant
-from project.formatter import (
-    _select_punchline,
-    format_photo_caption,
-    format_post,
-    format_stock_video_caption,
-    format_video_card,
-)
+from project.formatter import format_photo_caption, format_post, format_stock_video_caption, format_video_card
 from project.scoring import calculate_score
 from project.settings import MIN_PUBLICATION_SCORE
-from project.sources import (
-    SOURCES,
-    extract_new_retail_article,
-    extract_retail_article,
-)
+from project.sources import SOURCES
 from project.video import pexels_query
 
 
-def item(title, description="", source="Postium Коллаборации"):
-    return {
-        "title": title,
-        "description": description,
-        "url": "https://example.test/item",
-        "source": source,
-        "published_at": datetime(2026, 1, 2, tzinfo=timezone.utc),
-    }
+def item(title, description="", source="3DNews"):
+    return {"title": title, "description": description, "url": "https://example.test/item", "source": source, "published_at": datetime(2026, 1, 2, tzinfo=timezone.utc)}
 
 
-def test_project_has_eight_enabled_real_sources():
-    assert len(SOURCES) == 8
+def test_project_has_six_direct_russian_technology_sources():
+    assert len(SOURCES) == 6
     assert all(source["enabled"] for source in SOURCES)
     assert {source["type"] for source in SOURCES} == {"rss"}
-    assert all(source["url"].startswith("https://") for source in SOURCES)
+    assert all("news.google.com" not in source["url"] for source in SOURCES)
 
 
-def test_filter_accepts_brand_event_and_rejects_unrelated_news():
-    accepted = item("Dior и A24 объявили о новой коллаборации")
+def test_filter_accepts_concrete_technology_news_and_rejects_unrelated_story():
+    accepted = item("Samsung представила новый складной смартфон")
     rejected = item("Городской совет обсудил правила парковки")
-
     assert filter_relevant([accepted, rejected], is_relevant) == [accepted]
-    assert accepted["event_category"] == "collaboration"
-    assert rejected["matched_topics"] == []
+    assert accepted["event_category"] == "gadgets"
 
 
-def test_filter_rejects_routine_appointment_even_with_brand_words():
-    news = item("Apple назначила нового директора по маркетингу")
+def test_filter_categorizes_ai_science_space_and_security():
+    examples = {
+        "ai": "OpenAI представила новую нейросеть для работы с видео",
+        "science": "Учёные обнаружили новый вид древнего животного",
+        "space": "NASA запустило космический телескоп к далёкой планете",
+        "cybersecurity": "Исследователи обнаружили уязвимость в менеджере паролей",
+    }
+    for category, title in examples.items():
+        news = item(title)
+        assert is_relevant(news) is True
+        assert news["event_category"] == category
 
-    assert is_relevant(news) is False
 
-
-def test_filter_rejects_multi_story_roundup():
-    news = item(
-        "Глобальная реклама: главные события недели",
-        "Новые кампании и партнерства известных брендов.",
+def test_filter_rejects_discounts_roundups_guides_and_rumors():
+    titles = (
+        "На смартфоны Samsung появились большие скидки",
+        "Топ-10 лучших ноутбуков для дома",
+        "Как выбрать новый телевизор: подробная инструкция",
+        "Инсайдер рассказал, каким может выйти новый iPhone",
     )
-
-    assert is_relevant(news) is False
-
-
-def test_filter_rejects_workforce_demand_research():
-    news = item(
-        "Как изменился спрос на линейных сотрудников",
-        "Исследование рынка труда и дефицитных специальностей.",
-    )
-
-    assert is_relevant(news) is False
+    assert all(is_relevant(item(title)) is False for title in titles)
 
 
-def test_filter_rejects_evergreen_branding_explainer():
-    news = item("Айдентика: что делает бренд узнаваемым")
-
-    assert is_relevant(news) is False
-
-
-def test_brand_alias_does_not_match_inside_unrelated_word():
-    news = item("Маркетплейс запустил стратегию продаж")
-
-    assert is_relevant(news) is False
-    assert news["matched_brands"] == []
-
-
-def test_google_news_requires_a_trusted_original_publisher():
-    untrusted = item(
-        "Apple выпустила лимитированный iPhone",
-        source="Знаменитые бренды — Google News",
-    )
-    untrusted["publisher"] = "Unknown Viral Site"
-    trusted = item(
-        "Apple выпустила лимитированный iPhone",
-        source="Знаменитые бренды — Google News",
-    )
-    trusted["publisher"] = "The Verge"
-
-    assert is_relevant(untrusted) is False
-    assert is_relevant(trusted) is True
-
-
-def test_english_title_is_not_relevant_for_russian_channel():
-    news = item("GTA VI launches in November", source="Игры и развлечения — Google News")
-    news["publisher"] = "The Drum"
-
-    assert is_relevant(news) is False
-
-
-def test_publishable_post_requires_text_image_and_direct_link():
-    complete = item("Apple представила новый продукт")
-    complete["article_text"] = "Содержательный текст новости о новом продукте Apple. " * 3
-    complete["image_url"] = "https://cdn.example.test/apple.jpg"
-
+def test_publishable_post_requires_substantial_text_and_image():
+    complete = item("Apple представила новый смартфон")
+    complete["article_text"] = "Содержательный текст о характеристиках устройства. " * 4
+    complete["image_url"] = "https://cdn.example.test/device.jpg"
     assert is_publishable(complete) is True
-
-    google_link = complete | {"url": "https://news.google.com/rss/articles/id"}
-    no_text = complete | {"article_text": "Коротко."}
-    no_image = complete | {"image_url": None}
-
-    assert is_publishable(google_link) is False
-    assert is_publishable(no_text) is False
-    assert is_publishable(no_image) is False
+    assert is_publishable(complete | {"article_text": "Коротко."}) is False
+    assert is_publishable(complete | {"image_url": None}) is False
 
 
-def test_title_category_takes_priority_over_description_side_topics():
-    news = item(
-        "Apple представила новый логотип",
-        "Проект создан в коллаборации с агентством.",
-    )
-
+def test_scoring_promotes_a_clear_gadget_launch():
+    news = item("Apple официально представила новый смартфон", "Устройство впервые получило камеру с разрешением 200 Мп.")
     assert is_relevant(news) is True
-    assert news["event_category"] == "rebrand"
-
-
-def test_collaboration_in_description_beats_generic_launch_word():
-    news = item(
-        "adidas выпустил новые кроссовки",
-        "Это совместная версия с известным художником.",
-    )
-
-    assert is_relevant(news) is True
-    assert news["event_category"] == "collaboration"
-
-
-def test_scoring_rewards_direct_source_numbers_and_multiple_signals():
-    news = item(
-        "Apple и Nike впервые выпустили совместную лимитку",
-        "Коллаборация поступит в продажу завтра.",
-    )
-    assert is_relevant(news) is True
-
     add_scores([news], calculate_score)
-
     assert news["score"] >= MIN_PUBLICATION_SCORE
     assert filter_by_minimum_score([news], MIN_PUBLICATION_SCORE) == [news]
 
 
-def test_formatter_is_short_lively_and_html_safe():
-    news = item("Apple <X> выпустила лимитку", "Смелее & ярче. Вторая деталь. Третья лишняя.")
+def test_formatter_is_short_factual_and_has_topic_footer():
+    news = item("Samsung <X> представила смартфон", "Устройство получило новый экран & камеру. Продажи начнутся весной. Третья лишняя.")
     assert is_relevant(news) is True
-
     post = format_post(news)
-
-    assert "Apple &lt;X&gt;" in post
-    assert "Смелее &amp; ярче" in post
+    assert "Samsung &lt;X&gt;" in post
+    assert "экран &amp; камеру" in post
     assert "Третья лишняя" not in post
-    assert "Берём?" not in post
-    assert "Почему это важно" not in post
+    assert "Уже в списке желаний" not in post
     assert "📅 2 января 2026" in post
-    assert "📰 <b>Тренды и Бренды:</b> новинки" in post
+    assert "гаджеты" in post
+    assert "#Гаджеты" in post
     assert ">Читать источник</a>" in post
-    assert "#Новинки" in post
-    assert 'href="https://example.test/item"' in post
-
-
-def test_formatter_reactions_are_stable_but_varied_between_stories():
-    reactions = set()
-
-    for number in range(30):
-        news = item(f"Apple выпустила новинку номер {number}")
-        news["url"] = f"https://example.test/item-{number}"
-        news["event_category"] = "product_launch"
-        reaction = _select_punchline(news, "product_launch")
-        reactions.add(reaction)
-        assert reaction == _select_punchline(news, "product_launch")
-
-    assert len(reactions) >= 5
-    assert "" in reactions
-    assert "Берём?" not in reactions
-
-
-def test_formatter_uses_real_google_news_publisher():
-    news = item(
-        "Nike unveils new identity - Design Week",
-        source="Знаменитые бренды — Google News",
-    )
-    news["publisher"] = "Design Week"
-    news["event_category"] = "rebrand"
-
-    post = format_post(news)
-
-    assert "Nike unveils new identity - Design Week" not in post
-    assert ">Читать источник</a>" in post
-    assert "Google News" not in post
-
-
-def test_formatter_removes_direct_source_suffix_from_title():
-    news = item("LEGO выпустила новый набор | New Retail", source="New Retail")
-    news["matched_topics"] = ["product_launch"]
-    news["event_category"] = "product_launch"
-
-    post = format_post(news)
-
-    assert "LEGO выпустила новый набор | New Retail" not in post
-    assert "LEGO выпустила новый набор" in post
 
 
 def test_photo_caption_stays_inside_safe_limit():
-    news = item("Apple представила новый логотип", "слово " * 1000)
-    assert is_relevant(news) is True
-
+    news = item("Apple представила новый смартфон", "слово " * 1000)
+    news["event_category"] = "gadgets"
     assert len(format_photo_caption(news)) <= 1000
 
 
-def test_food_collaboration_gets_relevant_video_query_and_short_overlay():
-    news = item(
-        "«Додо Пицца» и Lay’s Maxx запустили коллаборацию с «Чипси-пиццей»",
-        "Пиццу подают с пачкой чипсов.",
-    )
-    news["event_category"] = "collaboration"
-
+def test_video_query_and_card_follow_technology_topic():
+    news = item("OpenAI представила новую нейросеть для видео")
+    news["event_category"] = "ai"
     card = format_video_card(news)
-
-    assert "pizza" in pexels_query(news) or "chips" in pexels_query(news)
-    assert card["title"] == "«Додо Пицца» × Lay’s Maxx"
-    assert "запустили" not in card["title"]
-    assert len(card["title"]) < 40
+    assert "artificial intelligence" in pexels_query(news) or "robotics" in pexels_query(news)
+    assert card["eyebrow"] == "ИСКУССТВЕННЫЙ ИНТЕЛЛЕКТ"
 
 
-def test_stock_video_caption_does_not_repeat_overlay_headline():
+def test_stock_video_caption_keeps_body_and_credit():
     class Asset:
         creator_name = "Author"
         creator_url = "https://example.test/author"
         page_url = "https://example.test/video"
         provider_name = "Stock"
 
-    news = item(
-        "«Додо Пицца» и Lay’s Maxx запустили коллаборацию с «Чипси-пиццей»",
-        "Бренды представили пиццу с лимитированной пачкой чипсов.",
-    )
+    news = item("NASA запустило новый космический телескоп", "Аппарат изучит далёкие планеты.")
     news["article_text"] = news["description"]
-    news["event_category"] = "collaboration"
-
+    news["event_category"] = "space"
     caption = format_stock_video_caption(news, Asset())
-
     assert not caption.startswith("<b>")
-    assert caption.count("запустили коллаборацию") == 0
-    assert "Бренды представили пиццу" in caption
+    assert "Аппарат изучит" in caption
     assert "Author" in caption
-
-
-def test_new_retail_extractor_keeps_only_article_body():
-    soup = BeautifulSoup(
-        '<nav><p>Меню</p></nav><div itemprop="articleBody">'
-        '<div>Главный вывод.</div><p>Подробности исследования.</p>'
-        '<noindex>Служебный блок</noindex></div>',
-        "html.parser",
-    )
-
-    assert extract_new_retail_article(soup) == (
-        "Главный вывод.\n\nПодробности исследования."
-    )
-
-
-def test_retail_extractor_skips_subscription_outside_story():
-    soup = BeautifulSoup(
-        '<div class="subscribe">Получайте новости первыми</div>'
-        '<div class="contain__description"><p>Факты новости.</p></div>',
-        "html.parser",
-    )
-
-    assert extract_retail_article(soup) == "Факты новости."

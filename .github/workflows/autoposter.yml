@@ -1,4 +1,4 @@
-name: Trends and Brands Autoposter
+name: Nu i Gadgets Autoposter
 
 on:
   # cron-job.org starts this workflow through the GitHub dispatch API.
@@ -9,7 +9,7 @@ permissions:
 
 # A later run waits instead of interrupting a publisher with unknown state.
 concurrency:
-  group: trends-brands-autoposter
+  group: nu-i-gadgets-autoposter
   cancel-in-progress: false
 
 jobs:

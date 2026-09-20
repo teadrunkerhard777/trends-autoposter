@@ -1,39 +1,17 @@
-"""Project-owned stock-video search choices for Trends & Brands."""
+"""Project-owned stock-video search choices for technology news."""
 
 import hashlib
 
 PEXELS_VIDEO_QUERIES = {
-    "collaboration": (
-        "product packaging creative studio close up",
-        "two products colorful background close up",
-    ),
-    "product_launch": (
-        "new product technology retail close up",
-        "modern product unboxing colorful studio",
-    ),
-    "campaign": (
-        "advertising production colorful studio",
-        "creative marketing photo shoot",
-    ),
-    "rebrand": (
-        "graphic design branding creative studio",
-        "designer working typography color palette",
-    ),
-    "viral_event": (
-        "social media smartphone screen close up",
-        "phone camera urban lights close up",
-    ),
+    "gadgets": ("modern smartphone technology close up", "consumer electronics device studio"),
+    "ai": ("artificial intelligence data center", "robotics laboratory technology"),
+    "science": ("scientist laboratory research", "microscope science experiment"),
+    "space": ("space telescope stars", "rocket launch space exploration"),
+    "cybersecurity": ("cybersecurity computer code", "data security server room"),
+    "software": ("software developer computer screen", "mobile application technology"),
 }
 
 STOCK_TOPIC_QUERIES = (
-    (
-        ("пицц", "чипс", "ресторан", "бургер", "еда", "напит", "кофе"),
-        ("pizza close up restaurant food", "chips snack food close up"),
-    ),
-    (
-        ("кроссов", "одежд", "мод", "fashion", "adidas", "nike"),
-        ("fashion sneakers close up studio", "streetwear clothing detail"),
-    ),
     (
         ("игр", "playstation", "xbox", "nintendo", "gta"),
         ("video game controller neon", "gaming setup close up"),
@@ -43,12 +21,12 @@ STOCK_TOPIC_QUERIES = (
         ("smartphone technology close up", "modern device screen detail"),
     ),
     (
-        ("космет", "макияж", "beauty", "парфюм"),
-        ("beauty cosmetics product close up", "perfume makeup studio"),
+        ("космос", "ракет", "спутник", "планет", "луна", "марс"),
+        ("space telescope stars", "rocket launch space exploration"),
     ),
     (
-        ("автомоб", "машин", "tesla", "mercedes", "bmw"),
-        ("modern car detail city", "electric car close up"),
+        ("нейросет", "искусственн", "openai", "робот"),
+        ("artificial intelligence data center", "robotics laboratory technology"),
     ),
 )
 

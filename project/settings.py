@@ -1,15 +1,16 @@
-"""Publication and deduplication settings for Trends & Brands."""
+"""Publication and deduplication settings for the technology channel."""
 
-CHANNEL_TITLE = "Тренды и Бренды"
-CHANNEL_DESCRIPTION = """📈 Тренды и бренды
+CHANNEL_TITLE = "Ну и ГАДЖЕТЫ | Новости хай-тек"
+CHANNEL_DESCRIPTION = """📱 Ну и ГАДЖЕТЫ
 
-Главные новости о компаниях, технологиях, бизнесе, людях и идеях, которые меняют рынок и нашу жизнь.
+Гаджеты, электроника, ИИ, наука и технологии — коротко и по делу.
 
-Новые продукты, громкие сделки, популярные бренды, свежие тренды и всё, о чём будут говорить завтра."""
+Новые устройства, важные обновления, открытия и всё, что уже меняет нашу жизнь."""
 
 NEWS_LOOKBACK_DAYS = 3
 MAX_NEWS_PER_RUN = 1
-MIN_PUBLICATION_SCORE = 8
+MAX_ARTICLE_CANDIDATES = 25
+MIN_PUBLICATION_SCORE = 5
 POST_MODE = "single"
 
 # A separate external cron runs native video posts between regular slots.

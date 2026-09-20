@@ -1,8 +1,8 @@
-# «Тренды и Бренды» Autoposter
+# «Ну и ГАДЖЕТЫ | Новости хай-тек» Autoposter
 
-A rule-based Telegram autoposter that selects notable brand moves, consumer
-trends, retail innovations, campaigns, collaborations, and rebrands in Russia
-and around the world. Local execution remains safe by default.
+A rule-based Telegram autoposter for notable gadgets, electronics, artificial
+intelligence, science, space, cybersecurity, and software news. Local
+execution remains safe by default.
 
 ## What it includes
 
@@ -45,46 +45,42 @@ cp .env.example .env
 .venv/bin/python main.py
 ```
 
-The project combines direct Russian industry RSS feeds with narrow Google News
-RSS searches for international coverage. Relevance, event categories, scoring,
-and Telegram presentation live in `project/`.
+The project uses direct Russian-language RSS feeds. Relevance, topic categories,
+scoring, and Telegram presentation live in `project/`.
 
 ## Channel behavior
 
-- Direct coverage: Postium collaborations, AdIndex, New Retail, and Retail.ru.
-- Discovery feeds target famous consumer, technology, entertainment, food, and
-  fashion brands. Google News items are accepted only from trusted publishers.
-- A recognizable brand and a concrete launch, collaboration, campaign,
-  rebrand, meme, controversy, or other viral event are both required.
-- Routine appointments, market research, events, roundups, how-to articles,
-  financial reports, and workforce news are excluded before scoring.
-- Posts contain a headline, no more than two factual sentences, a short closing
-  reaction, and a compact dated footer with the channel rubric, source link,
-  and one category hashtag.
+- Direct coverage: 3DNews, iXBT, Habr News, N+1, Hi-Tech Mail, and SecurityLab.
+- Topics: gadgets, AI, science, space, cybersecurity, and major software news.
+- Every accepted story needs a concrete launch, discovery, update, experiment,
+  vulnerability, or other confirmed development.
+- Discounts, roundups, reviews, guides, rumors, appointments, and weekly
+  digests are excluded before scoring.
+- Posts contain a headline, no more than two factual sentences, and a compact
+  dated footer with the channel rubric, direct source link, and one hashtag.
 - Article imagery is preferred over generic site branding: obvious logos,
   avatars, placeholders, and explicitly tiny metadata previews are skipped.
 
 ## Channel identity
 
-- Name: `Тренды и Бренды`.
+- Name: `Ну и ГАДЖЕТЫ | Новости хай-тек`.
 - Avatar: supplied and managed by the channel owner outside this repository.
 - Description:
 
-  > 📈 Тренды и бренды
+  > 📱 Ну и ГАДЖЕТЫ
   >
-  > Главные новости о компаниях, технологиях, бизнесе, людях и идеях, которые
-  > меняют рынок и нашу жизнь.
+  > Гаджеты, электроника, ИИ, наука и технологии — коротко и по делу.
   >
-  > Новые продукты, громкие сделки, популярные бренды, свежие тренды и всё, о
-  > чём будут говорить завтра.
+  > Новые устройства, важные обновления, открытия и всё, что уже меняет нашу
+  > жизнь.
 
 - Regular posts use the original editorial image from the source. Separate
   video runs at 13:00 and 21:00 Asia/Yekaterinburg use Pexels or Pixabay
   motion, or turn the editorial image into a short branded MP4 card displayed
   directly in Telegram with the usual source caption.
 
-The default settings consider the last three days, require a score of at least
-eight, and select one story per run. The workflow is started through
+The default settings consider the last three days, deeply inspect the top 25
+candidates, and select one story per run. The workflow is started through
 `workflow_dispatch`; cron-job.org supplies the daily schedule. Manual runs
 remain available. See [CRON_JOBS.md](CRON_JOBS.md) for the exact setup.
 

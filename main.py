@@ -20,6 +20,7 @@ from config import (
     DRY_RUN,
     DIVERSITY_SETTINGS,
     EVENT_DEDUP_SETTINGS,
+    MAX_ARTICLE_CANDIDATES,
     MAX_NEWS_PER_RUN,
     MEDIA_MODE,
     MIN_PUBLICATION_SCORE,
@@ -378,10 +379,13 @@ def run():
         MIN_PUBLICATION_SCORE,
     )
     ranked_news = sort_by_score(scored_news)
+    article_candidates = ranked_news[:MAX_ARTICLE_CANDIDATES]
 
     # Generic event fingerprints use article facts, so loading precedes dedup.
-    load_article_data(ranked_news)
-    publishable_news = [item for item in ranked_news if is_publishable(item)]
+    load_article_data(article_candidates)
+    publishable_news = [
+        item for item in article_candidates if is_publishable(item)
+    ]
     unique_news = remove_duplicates(
         publishable_news,
         EVENT_DEDUP_SETTINGS,
@@ -412,6 +416,7 @@ def run():
     print(f"Fresh: {len(fresh_news)}")
     print(f"Relevant: {len(relevant_news)}")
     print(f"Minimum score: {len(scored_news)}")
+    print(f"Article candidates: {len(article_candidates)}")
     print(f"Publishable: {len(publishable_news)}")
     print(f"Unique: {len(unique_news)}")
     print(f"New: {len(new_news)}")
@@ -436,7 +441,7 @@ def run():
 
 if __name__ == "__main__":
     try:
-        with single_instance_lock("trends-brands-autoposter.lock"):
+        with single_instance_lock("nu-i-gadgets-autoposter.lock"):
             run()
     except AlreadyRunningError:
         print("Autoposter is already running; this run was stopped.")

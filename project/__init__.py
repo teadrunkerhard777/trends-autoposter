@@ -1,1 +1,1 @@
-"""Project-specific behavior for the Trends & Brands channel."""
+"""Project-specific behavior for the Ну и ГАДЖЕТЫ channel."""

@@ -18,7 +18,7 @@
 
 Параметры запроса:
 
-- Title: `Trends Autoposter`
+- Title: `Ну и ГАДЖЕТЫ — посты`
 - URL: `https://api.github.com/repos/teadrunkerhard777/trends-autoposter/actions/workflows/autoposter.yml/dispatches`
 - Method: `POST`
 - Тело запроса: `{"ref":"main"}`
@@ -72,7 +72,7 @@ GitHub должен ответить успешным кодом `200`. Отве
 
 Создайте вторую независимую задачу cron-job.org:
 
-- Title: `Trends Video Autoposter`
+- Title: `Ну и ГАДЖЕТЫ — видео`
 - URL: `https://api.github.com/repos/teadrunkerhard777/trends-autoposter/actions/workflows/video-autoposter.yml/dispatches`
 - Method: `POST`
 - Тело запроса: `{"ref":"main"}`

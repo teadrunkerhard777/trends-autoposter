@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from project import settings as project_settings
 from project.settings import (
     EVENT_DEDUP_SETTINGS,
+    MAX_ARTICLE_CANDIDATES,
     MAX_NEWS_PER_RUN,
     MIN_PUBLICATION_SCORE,
     NEWS_LOOKBACK_DAYS,

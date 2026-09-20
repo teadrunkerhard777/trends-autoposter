@@ -30,8 +30,8 @@ def test_video_workflow_is_separate_external_cron_and_forces_video():
     assert "PIXABAY_API_KEY" in video
     assert "actions/cache@v4" in video
     assert "PEXELS_API_KEY" not in regular
-    assert "group: trends-brands-autoposter" in regular
-    assert "group: trends-brands-autoposter" in video
+    assert "group: nu-i-gadgets-autoposter" in regular
+    assert "group: nu-i-gadgets-autoposter" in video
     assert "cancel-in-progress: false" in video
     assert "git add storage/published.json" in video
     assert "git add ." not in video
