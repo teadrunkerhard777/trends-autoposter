@@ -79,7 +79,7 @@ def test_formatter_is_short_factual_and_has_topic_footer():
     assert is_relevant(news) is True
     post = format_post(news)
     assert "Samsung &lt;X&gt;" in post
-    assert post.startswith("🔴 <b>Samsung &lt;X&gt;")
+    assert post.startswith("🔵 <b>Samsung &lt;X&gt;")
     assert "экран &amp; камеру" in post
     assert "Четвёртый абзац" in post
     assert "Пятый лишний" not in post

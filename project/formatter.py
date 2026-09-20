@@ -88,7 +88,7 @@ def _format(news_item, limit, include_header=True):
         f'🔗 <a href="{url}">Читать источник</a>\n\n'
         f"{hashtag}"
     )
-    header = f"🔴 <b>{title}</b>"
+    header = f"🔵 <b>{title}</b>"
     fixed_length = (
         (len(header) if include_header else 0)
         + len(footer)
