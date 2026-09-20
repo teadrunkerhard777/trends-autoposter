@@ -10,7 +10,8 @@ REQUEST_HEADERS = {"User-Agent": "Mozilla/5.0 AutoposterTemplate/1.0"}
 DEFAULT_RETRIES = 3
 RETRY_DELAY_SECONDS = 0.5
 SERVICE_PREFIXES = (
-    "photo:", "video:", "read also", "advertisement", "sponsored",
+    "photo:", "фото:", "video:", "источник изображения:", "иллюстрация:",
+    "read also", "advertisement", "sponsored",
 )
 
 

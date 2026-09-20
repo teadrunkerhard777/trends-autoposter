@@ -12,15 +12,15 @@ from generation.text import fit_text_to_html_limit
 MESSAGE_LIMIT = 4000
 PHOTO_CAPTION_LIMIT = 1000
 STOCK_VIDEO_CAPTION_LIMIT = 760
-EXCERPT_LIMIT = 560
+EXCERPT_LIMIT = 1800
 
 CATEGORY_FOOTERS = {
-    "gadgets": ("гаджеты", "#Гаджеты"),
+    "gadgets": ("гаджеты", "#гаджеты"),
     "ai": ("искусственный интеллект", "#ИИ"),
-    "science": ("наука", "#Наука"),
-    "space": ("космос", "#Космос"),
-    "cybersecurity": ("кибербезопасность", "#Кибербезопасность"),
-    "software": ("технологии", "#Технологии"),
+    "science": ("наука", "#наука"),
+    "space": ("космос", "#космос"),
+    "cybersecurity": ("кибербезопасность", "#кибербезопасность"),
+    "software": ("технологии", "#технологии"),
 }
 
 MONTHS = (
@@ -77,24 +77,25 @@ def _format(news_item, limit, include_header=True):
         publisher_name,
     )
     title = escape(raw_title[:500])
+    publisher = escape(publisher_name)
     url = escape(news_item.get("url", ""), quote=True)
     date = _format_date(news_item.get("published_at"))
     category = news_item.get("event_category")
     topic, hashtag = CATEGORY_FOOTERS.get(category, ("технологии", "#Технологии"))
     footer = (
         f"📅 {date}\n"
-        f"📰 <b>{CHANNEL_TITLE}:</b> {topic}\n\n"
+        f"📰 {publisher}: {topic}\n\n"
         f'🔗 <a href="{url}">Читать источник</a>\n\n'
         f"{hashtag}"
     )
-    header = f"<b>{title}</b>"
+    header = f"🔴 <b>{title}</b>"
     fixed_length = (
         (len(header) if include_header else 0)
         + len(footer)
         + 8
     )
     body = news_item.get("article_text") or news_item.get("description", "")
-    body = _short_excerpt(body, raw_title)
+    body = _article_excerpt(body, raw_title)
     body = fit_text_to_html_limit(
         body,
         min(EXCERPT_LIMIT, max(0, limit - fixed_length)),
@@ -116,17 +117,35 @@ def _short_video_title(title, category):
     return f"{shortened}…"
 
 
-def _short_excerpt(text, title):
-    normalized = " ".join((text or "").split())
-    if not normalized:
+def _article_excerpt(text, title):
+    """Build up to four readable paragraphs instead of a two-sentence digest."""
+    paragraphs = [
+        " ".join(paragraph.split())
+        for paragraph in re.split(r"\n\s*\n", text or "")
+        if paragraph.strip()
+    ]
+    if not paragraphs:
         return ""
 
     display_title = " ".join(title.split())
-    if normalized.startswith(display_title):
-        normalized = normalized[len(display_title):].strip(" -—|·")
+    if paragraphs[0].startswith(display_title):
+        paragraphs[0] = paragraphs[0][len(display_title):].strip(" -—|·")
+        if not paragraphs[0]:
+            paragraphs.pop(0)
 
-    sentences = re.split(r"(?<=[.!?])\s+", normalized)
-    return " ".join(sentences[:2]).strip()
+    if len(paragraphs) == 1:
+        sentences = re.split(r"(?<=[.!?])\s+", paragraphs[0])
+        paragraphs = [
+            " ".join(sentences[index:index + 2]).strip()
+            for index in range(0, min(len(sentences), 8), 2)
+        ]
+    else:
+        paragraphs = [
+            " ".join(re.split(r"(?<=[.!?])\s+", paragraph)[:2]).strip()
+            for paragraph in paragraphs
+        ]
+
+    return "\n\n".join(paragraph for paragraph in paragraphs[:4] if paragraph)
 
 
 def _format_date(value):

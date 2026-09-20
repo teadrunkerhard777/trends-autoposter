@@ -68,16 +68,26 @@ def test_scoring_promotes_a_clear_gadget_launch():
 
 
 def test_formatter_is_short_factual_and_has_topic_footer():
-    news = item("Samsung <X> представила смартфон", "Устройство получило новый экран & камеру. Продажи начнутся весной. Третья лишняя.")
+    news = item(
+        "Samsung <X> представила смартфон",
+        "Первый абзац про новый экран & камеру. Ещё один факт.\n\n"
+        "Второй абзац о характеристиках устройства.\n\n"
+        "Третий абзац о цене смартфона.\n\n"
+        "Четвёртый абзац о начале продаж.\n\n"
+        "Пятый лишний абзац.",
+    )
     assert is_relevant(news) is True
     post = format_post(news)
     assert "Samsung &lt;X&gt;" in post
+    assert post.startswith("🔴 <b>Samsung &lt;X&gt;")
     assert "экран &amp; камеру" in post
-    assert "Третья лишняя" not in post
+    assert "Четвёртый абзац" in post
+    assert "Пятый лишний" not in post
     assert "Уже в списке желаний" not in post
     assert "📅 2 января 2026" in post
     assert "гаджеты" in post
-    assert "#Гаджеты" in post
+    assert "📰 3DNews: гаджеты" in post
+    assert "#гаджеты" in post
     assert ">Читать источник</a>" in post
 
 

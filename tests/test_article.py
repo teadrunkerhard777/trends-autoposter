@@ -193,6 +193,18 @@ def test_source_stop_marker_does_not_affect_other_sources():
     assert "Footer" in clean_article_text(text, "Other Source", markers)
 
 
+def test_article_cleanup_removes_image_credit_service_paragraph():
+    text = (
+        "Первый абзац новости.\n\n"
+        "Источник изображения: Author / unsplash.com\n\n"
+        "Второй абзац новости."
+    )
+
+    assert clean_article_text(text) == (
+        "Первый абзац новости.\n\nВторой абзац новости."
+    )
+
+
 def test_image_metadata_prefers_open_graph_and_resolves_relative_url():
     html = """
     <meta property='og:image' content='/images/main.jpg'>
