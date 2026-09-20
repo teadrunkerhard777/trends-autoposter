@@ -92,6 +92,24 @@ def test_successful_remote_photo_does_not_call_text_fallback():
     assert len(history) == 1
 
 
+def test_required_image_failure_never_falls_back_to_text_or_history():
+    history = []
+    changed = publish_selected_news(
+        [news("https://img.test/photo.jpg")],
+        history,
+        False,
+        "single",
+        send_post=fail_if_called,
+        send_photo=lambda *args, **kwargs: TelegramSendResult(
+            False, "HTTP 400"
+        ),
+        require_image=True,
+    )
+
+    assert changed is False
+    assert history == []
+
+
 def test_video_slot_sends_native_video_and_records_slot(tmp_path):
     image_path = tmp_path / "photo.jpg"
     video_path = tmp_path / "clip.mp4"

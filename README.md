@@ -60,6 +60,8 @@ scoring, and Telegram presentation live in `project/`.
   dated footer with the channel rubric, direct source link, and one hashtag.
 - Article imagery is preferred over generic site branding: obvious logos,
   avatars, placeholders, and explicitly tiny metadata previews are skipped.
+- Regular posts require a confirmed photo send. A failed photo never falls
+  back to a text-only message and is never added to publication history.
 
 ## Channel identity
 

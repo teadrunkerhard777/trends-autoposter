@@ -12,6 +12,7 @@ MAX_NEWS_PER_RUN = 1
 MAX_ARTICLE_CANDIDATES = 25
 MIN_PUBLICATION_SCORE = 5
 POST_MODE = "single"
+REQUIRE_IMAGE_POSTS = True
 
 # A separate external cron runs native video posts between regular slots.
 VIDEO_TIMEZONE = "Asia/Yekaterinburg"

@@ -30,6 +30,7 @@ from config import (
     PIXABAY_API_KEY,
     PIXABAY_VIDEO_ENABLED,
     POST_MODE,
+    REQUIRE_IMAGE_POSTS,
     SOURCES,
     VIDEO_CANVAS_SIZE,
     VIDEO_DURATION_SECONDS,
@@ -175,6 +176,7 @@ def publish_selected_news(
     video_slot=None,
     pexels_api_key=None,
     pixabay_api_key=None,
+    require_image=False,
 ):
     """Publish each selected item once and update history on confirmation."""
 
@@ -325,7 +327,7 @@ def publish_selected_news(
                     if temporary_image and temporary_image.path.exists():
                         temporary_image.path.unlink()
 
-        if not succeeded and not uncertain:
+        if not succeeded and not uncertain and not require_image:
             text_result = send_post(post)
             succeeded = bool(text_result)
             uncertain = getattr(text_result, "uncertain", False)
@@ -431,6 +433,7 @@ def run():
         video_slot=video_slot,
         pexels_api_key=PEXELS_API_KEY,
         pixabay_api_key=PIXABAY_API_KEY,
+        require_image=REQUIRE_IMAGE_POSTS,
     )
 
     if not DRY_RUN and history_changed:
