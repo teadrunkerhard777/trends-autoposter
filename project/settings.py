@@ -31,6 +31,8 @@ VIDEO_STYLE = {
 EVENT_DEDUP_SETTINGS = {
     "text_limit": 1600, "time_window_hours": 48, "min_shared_tokens": 5,
     "min_token_overlap": 0.45, "min_token_jaccard": 0.20, "dense_match_tokens": 7,
+    "title_min_shared_tokens": 4, "title_min_token_overlap": 0.45,
+    "title_identity_min_shared": 2,
     "stop_words": {"about", "after", "also", "from", "into", "more", "that", "their", "this", "with", "will", "your", "для", "или", "как", "что", "это", "при", "его", "она", "они", "после", "стал", "стала", "бренд", "бренда", "компания", "компании"},
     "noise_prefixes": ("announce", "article", "company", "report", "source", "update", "анонс", "исследован", "компания", "новость", "отчет"),
 }

@@ -70,3 +70,64 @@ def test_optional_location_can_support_event_match():
 
     assert compare_event_fingerprints(first, second, EVENT_DEDUP_SETTINGS)["is_duplicate"] is True
 
+
+def test_same_snapdragon_generation_is_duplicate_across_sources():
+    first = make_item(
+        "3dnews",
+        "Qualcomm представила Snapdragon 8 Elite Gen 6 и Elite Extreme Gen 6",
+        "Первый длинный текст о мобильных процессорах и архитектуре.",
+        category="gadgets",
+    )
+    second = make_item(
+        "hi-tech",
+        "Представлены Snapdragon 8 Elite Gen 6 и 8 Elite Extreme Gen 6: 2-нм чипы",
+        "Совершенно другой текст из второго издания.",
+        category="gadgets",
+        hours=10,
+    )
+
+    details = compare_event_fingerprints(first, second, EVENT_DEDUP_SETTINGS)
+
+    assert details["is_duplicate"] is True
+    assert "snapdragon" in details["shared_tokens"]
+    assert len(remove_duplicates([first, second], EVENT_DEDUP_SETTINGS)) == 1
+
+
+def test_same_device_is_duplicate_inside_one_source():
+    first = make_item(
+        "ixbt",
+        "Motorola Signature 27 получил Snapdragon 8 Elite Extreme Gen 6",
+        "Камерофон получил экран и новую платформу.",
+        category="gadgets",
+    )
+    second = make_item(
+        "ixbt",
+        "Представлен Motorola Signature 27 со Snapdragon 8 Elite Extreme Gen 6",
+        "Другой текст о камерах, звуке и сроке обновлений.",
+        category="gadgets",
+        hours=7,
+    )
+
+    assert compare_event_fingerprints(
+        first, second, EVENT_DEDUP_SETTINGS
+    )["is_duplicate"] is True
+
+
+def test_different_snapdragon_products_are_not_merged_by_brand_alone():
+    first = make_item(
+        "a",
+        "Asus выпустила мини-ПК на Snapdragon X2 Elite",
+        "Компактный компьютер поступил в продажу.",
+        category="gadgets",
+    )
+    second = make_item(
+        "b",
+        "Qualcomm представила Snapdragon 8 Elite Gen 6",
+        "Новый мобильный процессор предназначен для смартфонов.",
+        category="gadgets",
+        hours=5,
+    )
+
+    assert compare_event_fingerprints(
+        first, second, EVENT_DEDUP_SETTINGS
+    )["is_duplicate"] is False

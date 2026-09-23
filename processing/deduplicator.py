@@ -10,6 +10,9 @@ DEFAULTS = {
     "min_token_overlap": 0.45,
     "min_token_jaccard": 0.20,
     "dense_match_tokens": 7,
+    "title_min_shared_tokens": 4,
+    "title_min_token_overlap": 0.45,
+    "title_identity_min_shared": 2,
     "stop_words": set(),
     "noise_prefixes": (),
 }
@@ -122,9 +125,6 @@ def compare_event_fingerprints(first, second, settings=None):
         "time_delta_hours": None,
     }
 
-    if first.get("source") and first.get("source") == second.get("source"):
-        return result
-
     first_date = _parse_datetime(first.get("published_at"))
     second_date = _parse_datetime(second.get("published_at"))
 
@@ -145,6 +145,38 @@ def compare_event_fingerprints(first, second, settings=None):
     )
 
     if not shared_categories:
+        return result
+
+    first_title_tokens = _title_tokens(first.get("title", ""), values)
+    second_title_tokens = _title_tokens(second.get("title", ""), values)
+    shared_title_tokens = first_title_tokens & second_title_tokens
+    title_overlap = (
+        len(shared_title_tokens) / min(len(first_title_tokens), len(second_title_tokens))
+        if first_title_tokens and second_title_tokens
+        else 0.0
+    )
+    shared_identity_tokens = {
+        token for token in shared_title_tokens
+        if any(character.isdigit() for character in token)
+        or re.search(r"[a-z]", token)
+    }
+    same_product_title = (
+        len(shared_title_tokens) >= values["title_min_shared_tokens"]
+        and title_overlap >= values["title_min_token_overlap"]
+        and len(shared_identity_tokens) >= values["title_identity_min_shared"]
+    )
+
+    if same_product_title:
+        return {
+            **result,
+            "is_duplicate": True,
+            "shared_tokens": sorted(shared_title_tokens),
+            "shared_categories": sorted(shared_categories),
+            "time_delta_hours": result["time_delta_hours"],
+        }
+
+    # Different stories from one outlet should not be merged from body boilerplate.
+    if first.get("source") and first.get("source") == second.get("source"):
         return result
 
     first_tokens = set(first_fp.get("tokens", []))
@@ -203,6 +235,25 @@ def _meaningful_tokens(text, settings):
         if any(token.startswith(prefix) for prefix in noise_prefixes):
             continue
 
+        tokens.add(token)
+
+    return tokens
+
+
+def _title_tokens(title, settings):
+    """Keep model names and short version tokens for product-level matching."""
+
+    stop_words = set(settings["stop_words"])
+    noise_prefixes = tuple(settings["noise_prefixes"])
+    tokens = set()
+
+    for token in re.findall(r"[\w-]+", title.casefold(), flags=re.UNICODE):
+        token = token.strip("_-")
+
+        if token in stop_words or (len(token) < 3 and not token.isdigit()):
+            continue
+        if any(token.startswith(prefix) for prefix in noise_prefixes):
+            continue
         tokens.add(token)
 
     return tokens
