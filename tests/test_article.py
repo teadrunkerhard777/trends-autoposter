@@ -205,6 +205,16 @@ def test_article_cleanup_removes_image_credit_service_paragraph():
     )
 
 
+def test_article_cleanup_removes_subscription_promo_tail():
+    text = (
+        "Первый абзац новости.\n\n"
+        "Не пропускайте наши новости Добавьте сайт в предпочитаемые источники.\n\n"
+        "Текст после служебного подвала."
+    )
+
+    assert clean_article_text(text) == "Первый абзац новости."
+
+
 def test_image_metadata_prefers_open_graph_and_resolves_relative_url():
     html = """
     <meta property='og:image' content='/images/main.jpg'>

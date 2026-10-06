@@ -50,6 +50,15 @@ def test_filter_rejects_discounts_roundups_guides_and_rumors():
     assert all(is_relevant(item(title)) is False for title in titles)
 
 
+def test_filter_rejects_local_starlink_discount_campaign():
+    news = item(
+        "SpaceX вдвое снизила цену Starlink и отдала антенну бесплатно",
+        "Компания запустила программу поддержки жителей округа Камерон.",
+    )
+
+    assert is_relevant(news) is False
+
+
 def test_publishable_post_requires_substantial_text_and_image():
     complete = item("Apple представила новый смартфон")
     complete["article_text"] = "Содержательный текст о характеристиках устройства. " * 4

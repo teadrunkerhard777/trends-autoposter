@@ -13,6 +13,10 @@ SERVICE_PREFIXES = (
     "photo:", "фото:", "video:", "источник изображения:", "иллюстрация:",
     "read also", "advertisement", "sponsored",
 )
+SERVICE_STOP_PREFIXES = (
+    "не пропускайте наши новости", "добавьте сайт в предпочитаемые источники",
+    "подписывайтесь на наши новости",
+)
 
 
 def fetch_article_html(url, source_config=None):
@@ -78,6 +82,9 @@ def clean_article_text(text, source=None, source_stop_markers=None):
         normalized = paragraph.casefold()
 
         if stop_markers and normalized.startswith(stop_markers):
+            break
+
+        if normalized.startswith(SERVICE_STOP_PREFIXES):
             break
 
         if normalized.startswith(SERVICE_PREFIXES):
